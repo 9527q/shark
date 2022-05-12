@@ -47,7 +47,7 @@ def hex_show_data(data: list[Union[int, None]], line_len: int = 16, /):
 
 
 def main():
-    filepath = "./data01.jpg"  # 要读取的文件路径
+    filepath = "./data_01.jpg"  # 要读取的文件路径
     read_length = 64  # 读取头尾的长度
     show_line_length = 16  # 展示的时候每行多长
     head, tail = read_bytes_head_tail(filepath, read_length)
