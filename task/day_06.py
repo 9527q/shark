@@ -27,12 +27,6 @@ class EthType(Enum):
     RARP = b"\x08\x35"
     IPV6 = b"\x86\xDD"
 
-    @classmethod
-    def from_value(cls, value) -> "EthType":
-        for i in cls:
-            if value == i.value:
-                return i
-
 
 @dataclass
 class Packet:
@@ -67,7 +61,7 @@ class Packet:
 
     @cached_property
     def type(self) -> EthType:
-        return EthType.from_value(self[12:14]) if self.len > 13 else None
+        return EthType(self[12:14]) if self.len > 13 else None
 
 
 class Pcap:
