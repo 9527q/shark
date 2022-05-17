@@ -66,7 +66,6 @@ class Ipv4(GetitemBase):
 class Packet(GetitemBase):
     HEADER_LEN = BASE_OFFSET = 16  # header 长度
 
-    pcap: "Pcap"  # 所属的 Pcap
     time_second_stamp: int  # 秒时间戳
     microsecond: int  # 微秒
     cap_len: int
@@ -156,7 +155,6 @@ class Pcap:
             time_stamp, micro_s, cap_len, length = self.unpack("llll", header)
             result.append(
                 Packet(
-                    pcap=self,
                     time_second_stamp=time_stamp,
                     microsecond=micro_s,
                     cap_len=cap_len,
