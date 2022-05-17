@@ -1,1 +1,8 @@
+# python
 .idea/
+
+# web
+*.pcap
+
+# mac
+.DS_Store
