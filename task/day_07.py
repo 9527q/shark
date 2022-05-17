@@ -64,7 +64,7 @@ class Ipv4(GetitemBase):
 
 @dataclass
 class Packet(GetitemBase):
-    HEADER_LEN = BASE_OFFSET = 16  # header 长度
+    HEADER_LEN = GETITEM_BASE_OFFSET = 16  # header 长度
 
     time_second_stamp: int  # 秒时间戳
     microsecond: int  # 微秒
@@ -148,7 +148,7 @@ class Pcap:
         return struct.unpack(self.struct_tag + fmt, data)
 
     def parse_payload(self):
-        if self.packet_list:
+        if self._packet_list:
             return
 
         index = self.HEADER_LEN
