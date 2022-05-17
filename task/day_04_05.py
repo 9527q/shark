@@ -1,5 +1,6 @@
 """
 第四、五天作业
+文件：链接: https://pan.baidu.com/s/1B9dkgVnw2Ua37vbN7MiOIg 提取码: cuwl
 
 编程解析第三天的 pcap 文件，遍历文件中的所有数据包，打印所有数据包时间、长度信息。
 示例：
@@ -87,7 +88,7 @@ class Pcap:
 
 
 if __name__ == "__main__":
-    pcap = Pcap("./data_04_05.pcap")
+    pcap = Pcap("./data_day_04.pcap")
     package_list = pcap.packet_list
     print(f"总计 {len(package_list)} 个数据包： ")
     for package in package_list:

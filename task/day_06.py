@@ -3,6 +3,7 @@
 
 编程解析第三天的 pcap 文件，遍历文件中的所有数据包，
 在上一个作业的基础上，打印所有数据包时间、长度信息、目的MAC地址、源MAC地址、协议名称
+文件：链接: https://pan.baidu.com/s/1B9dkgVnw2Ua37vbN7MiOIg 提取码: cuwl
 """
 import datetime
 import mmap
@@ -122,7 +123,7 @@ class Pcap:
 
 
 if __name__ == "__main__":
-    pcap = Pcap("./data_06.pcap")
+    pcap = Pcap("./data_day_06.pcap")
     packet_list = pcap.packet_list
     print(f"总计 {len(packet_list)} 个数据包： ")
     for p in packet_list:
