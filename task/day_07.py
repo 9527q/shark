@@ -135,6 +135,8 @@ class Pcap:
         if not self.struct_tag:
             raise ValueError(f"不认识的 Pcap 标识：{self.mode_tag}")
 
+        self._packet_list = []  # Packet 列表
+
     def __del__(self):
         self.m.close()
         self.m = None
@@ -145,15 +147,15 @@ class Pcap:
         """根据格式解析二进制数据"""
         return struct.unpack(self.struct_tag + fmt, data)
 
-    @cached_property
-    def packet_list(self) -> list[Packet]:
-        index = self.HEADER_LEN
-        result = []
+    def parse_payload(self):
+        if self.packet_list:
+            return
 
+        index = self.HEADER_LEN
         while index < self.size:
             header = self.m[index : index + Packet.HEADER_LEN]
             time_stamp, micro_s, cap_len, length = self.unpack("llll", header)
-            result.append(
+            self._packet_list.append(
                 Packet(
                     time_second_stamp=time_stamp,
                     microsecond=micro_s,
@@ -164,7 +166,11 @@ class Pcap:
                 )
             )
             index += Packet.HEADER_LEN + length
-        return result
+
+    @cached_property
+    def packet_list(self) -> list[Packet]:
+        self.parse_payload()
+        return self._packet_list
 
 
 if __name__ == "__main__":
