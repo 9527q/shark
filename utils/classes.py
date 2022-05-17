@@ -5,8 +5,8 @@ from dataclasses import dataclass
 @dataclass
 class GetitemBase:
     """
-    数据型基类
-    可以根据输入自动创建索引、切片功能（必须用非负数）
+    具有索引、切片功能数据型基类（必须用非负数）
+    索引接口、偏移量等必须在实例生成时指定
     """
 
     BASE_OFFSET = 0  # 基础偏移量
