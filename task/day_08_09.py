@@ -39,44 +39,9 @@ from dataclasses import dataclass
 from functools import cached_property
 from typing import Optional, Union
 
-from protocol import EthType, IpUpType
+from protocol import EthType, Ipv4
 from utils.classes import GetitemBase
-
-
-def mac2str(mac: bytes) -> str:
-    return "-".join(f"{i:02X}" for i in mac)
-
-
-def ip2str(ip: bytes) -> str:
-    return ".".join(str(i) for i in ip)
-
-
-class Ipv4(GetitemBase):
-    eth_type = EthType.IPV4
-
-    @property
-    def source_ip(self) -> bytes:
-        return self[12:16]
-
-    @property
-    def destination_ip(self) -> bytes:
-        return self[16:20]
-
-    @property
-    def ttl(self) -> int:
-        return self[8]
-
-    @property
-    def up_type(self) -> IpUpType:
-        return IpUpType(self[9])
-
-    def __str__(self):
-        return (
-            f"{ip2str(self.source_ip):15}"
-            f"  {ip2str(self.destination_ip):15}"
-            f"  {self.ttl:3}"
-            f"  {self.up_type.name}"
-        )
+from utils.convert import mac2str
 
 
 @dataclass
