@@ -5,7 +5,7 @@ from typing import Union
 
 @dataclass
 class GetitemDataclass:
-    """具有索引、切片功能的数据型基类（只能用非负数）"""
+    """具有索引、切片功能的数据型基类（只能用非负数或 None）"""
 
     item_api: Union[bytes, str, list, tuple]  # 数据切片接口
     item_api_offset: int  # 数据切片接口偏移量
@@ -14,7 +14,7 @@ class GetitemDataclass:
         if isinstance(item, slice):
             start = (item.start or 0) + self.item_api_offset
             if (stop := item.stop) is not None:
-                stop += + self.item_api_offset
+                stop += self.item_api_offset
             item = slice(start, stop)
         else:
             item += self.item_api_offset
