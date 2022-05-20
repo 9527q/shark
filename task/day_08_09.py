@@ -48,9 +48,9 @@ if __name__ == "__main__":
                     continue
                 arp = packet.parse_payload()
                 print(arp.show())
-            print("\nIP 地址\t\t\tMAC 地址")
-            for ip, mac in ARP.MAP.items():
-                print(ip2str(ip), mac2str(mac))
+    print("\nIP 地址\t\t\tMAC 地址")
+    for ip, mac in ARP.MAP.items():
+        print(ip2str(ip), mac2str(mac))
 
 # 结果
 # [ARP请求] 10.92.53.51(00-0C-29-7C-02-CA)     查询 10.92.53.1      的MAC地址在哪里
