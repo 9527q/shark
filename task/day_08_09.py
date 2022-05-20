@@ -34,8 +34,10 @@ IP地址  MAC地址
 
 import mmap
 
+from protocol.ethernet import ARP
 from protocol.pcap import Pcap
 from protocol.type import EthType
+from utils.convert import ip2str, mac2str
 
 if __name__ == "__main__":
     with open("./data_day_08.pcap", "rb") as f:
@@ -46,6 +48,9 @@ if __name__ == "__main__":
                     continue
                 arp = packet.parse_payload()
                 print(arp.show())
+            print("\nIP 地址\t\t\tMAC 地址")
+            for ip, mac in ARP.MAP.items():
+                print(ip2str(ip), mac2str(mac))
 
 # 结果
 # [ARP请求] 10.92.53.51(00-0C-29-7C-02-CA)     查询 10.92.53.1      的MAC地址在哪里
@@ -68,3 +73,9 @@ if __name__ == "__main__":
 # [ARP请求] 10.92.80.1(38-AD-8E-6C-1D-21)      查询 10.92.81.5      的MAC地址在哪里
 # [ARP请求] 10.92.80.1(38-AD-8E-6C-1D-21)      查询 10.92.81.5      的MAC地址在哪里
 # [ARP请求] 10.92.80.1(38-AD-8E-6C-1D-21)      查询 10.92.81.5      的MAC地址在哪里
+#
+# IP 地址			MAC 地址
+# 10.92.53.51     00-0C-29-7C-02-CA
+# 10.92.52.1      38-AD-8E-6C-1D-1B
+# 10.92.53.87     00-0C-29-84-37-07
+# 10.92.80.1      38-AD-8E-6C-1D-21
