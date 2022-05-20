@@ -1,9 +1,22 @@
-"""转换"""
+"""类型转换函数"""
 
 
-def mac2str(mac: bytes) -> str:
-    return "-".join(f"{i:02X}" for i in mac)
+def mac2str(mac: bytes, fill: str = " ", /) -> str:
+    res = "-".join(f"{i:02X}" for i in mac)
+    if fill:
+        res = res.ljust(17, fill)
+    return res
 
 
-def ip2str(ip: bytes) -> str:
-    return ".".join(str(i) for i in ip)
+def ip2str(ip: bytes, fill: str = " ", /) -> str:
+    res = ".".join(str(i) for i in ip)
+    if fill:
+        res = res.ljust(15, fill)
+    return res
+
+
+def ipmac2str(ip: bytes, mac: bytes, fill: str = " ", /) -> str:
+    res = f"{ip2str(ip, '')}({mac2str(mac, '')})"
+    if fill:
+        res = res.ljust(34, fill)
+    return res

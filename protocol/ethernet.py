@@ -1,0 +1,56 @@
+"""以太网协议"""
+import struct
+
+from protocol.type import EthType, IpUpType
+from utils.classes import Getitem
+from utils.convert import ip2str, ipmac2str
+
+
+class IPv4(Getitem):
+    def __post_init__(self):
+        self.source_ip = self[12:16]
+        self.destination_ip = self[16:20]
+        self.ttl = self[8]
+        self.up_type = IpUpType(self[9])
+
+    def show(self) -> str:
+        return (
+            f"{ip2str(self.source_ip)}"
+            f"  {ip2str(self.destination_ip)}"
+            f"  {self.ttl:3}"
+            f"  {self.up_type.name}"
+        )
+
+
+class ARP(Getitem):
+    TYPE_ASK = 1  # 请求
+    TYPE_RES = 2  # 应答
+
+    def __post_init__(self):
+        self.mac_len = mac_len = self[4]  # mac 地址长度
+        self.ip_len = ip_len = self[5]  # ip 地址长度
+        self.type = struct.unpack(">h", self[6:8])[0]  # type: int  # 1 请求，2 应答
+        addr = self[8 : 8 + 2 * mac_len + 2 * ip_len]  # 地址数据
+        self.source_mac = addr[:mac_len]
+        self.source_ip = addr[mac_len : mac_len + ip_len]
+        self.destination_mac = addr[mac_len + ip_len : 2 * mac_len + ip_len]
+        self.destination_ip = addr[2 * mac_len + ip_len : 2 * mac_len + 2 * ip_len]
+
+    def show(self) -> str:
+        if self.type == self.TYPE_ASK:
+            return (
+                f"[ARP请求] {ipmac2str(self.source_ip, self.source_mac)}"
+                f" 查询 {ip2str(self.destination_ip)} 的MAC地址在哪里"
+            )
+        else:
+            return (
+                f"[ARP响应] {ipmac2str(self.source_ip, self.source_mac)}"
+                f" 回复 {ipmac2str(self.destination_ip, self.destination_mac, '')}"
+                f"： {ip2str(self.source_ip, '')} 的MAC地址在我这里"
+            )
+
+
+ETH_TYPE_2_CLS = {  # 类型常量和解析类的映射
+    EthType.IPV4: IPv4,
+    EthType.ARP: ARP,
+}

@@ -4,8 +4,8 @@ from typing import Union
 
 
 @dataclass
-class GetitemDataclass:
-    """具有索引、切片功能的数据型基类（只能用非负数或 None）"""
+class Getitem:
+    """具有索引、切片功能的基类（只能用非负数或 None）"""
 
     item_api: Union[bytes, str, list, tuple]  # 数据切片接口
     item_api_offset: int  # 数据切片接口偏移量
@@ -20,3 +20,6 @@ class GetitemDataclass:
             item += self.item_api_offset
 
         return self.item_api[item]
+
+    def __post_init__(self):  # 让子类不需要声明数据类也能有 post_init
+        pass

@@ -3,14 +3,13 @@ import struct
 from dataclasses import dataclass
 from datetime import datetime
 
-from protocol import IPv4
+from protocol.ethernet import ETH_TYPE_2_CLS
 from protocol.type import EthType
-from utils.classes import GetitemDataclass
-from functools import cached_property
+from utils.classes import Getitem
+from utils.convert import mac2str
 
 
-@dataclass
-class Pcap(GetitemDataclass):
+class Pcap(Getitem):
     MAGIC_2_UNPACK_ACCURACY = {  # Pcap 的 Magic 对应的大小端模式和时间精确度
         b"\xa1\xb2\xc3\xd4": (">", 6),  # 大端，微秒 6 位精度
         b"\xa1\xb2\x3c\x4d": (">", 9),  # 大端，纳秒 9 位精度
@@ -32,11 +31,11 @@ class Pcap(GetitemDataclass):
             time_stamp, min_s, cap_len, length = self.unpack("llll", header)
             packet_list.append(
                 Packet(
+                    item_api=self.item_api,
+                    item_api_offset=index,
                     time_stamp=time_stamp,
                     cap_len=cap_len,
                     len=length,
-                    item_api_offset=index,
-                    item_api=self.item_api,
                     **{"microsecond" if self.accuracy == 6 else "nanosecond": min_s},
                 )
             )
@@ -45,7 +44,7 @@ class Pcap(GetitemDataclass):
 
 
 @dataclass
-class Packet(GetitemBase):
+class Packet(Getitem):
     HEADER_LEN = 16  # header 长度
 
     time_stamp: int  # 时间戳
@@ -54,39 +53,24 @@ class Packet(GetitemBase):
     microsecond: int = None  # 微秒，微秒与纳秒两个必须且只能传递一个
     nanosecond: int = None  # 纳秒
 
-    @cached_property
-    def payload(self):
-        return GetitemBase(item_api=self.item_api, item_api_offset=self.item_api_offset+self.HEADER_LEN)
-
-    @property
-    def time(self) -> datetime:  # 没有微秒和纳秒的时间
-        return datetime.fromtimestamp(self.time_stamp)
-
-    @property
-    def accuracy_second(self) -> int:  # 精确的秒
-        return self.microsecond if self.nanosecond is None else self.nanosecond
-
-    @property
-    def accuracy(self) -> int:  # 秒精确位数
-        return 6 if self.nanosecond is None else 9
-
-    @property
-    def destination_mac(self) -> bytes:
-        return self.payload[:6]
-
-    @property
-    def source_mac(self) -> bytes:
-        return self.payload[6:12]
-
-    @property
-    def eth_type(self) -> EthType:
-        return EthType.parse(self.payload[12:14])
+    def __post_init__(self):
+        self.payload = Getitem(self.item_api, self.item_api_offset + self.HEADER_LEN)
+        self.time = datetime.fromtimestamp(self.time_stamp)  # 没有微秒和纳秒的时间
+        self.accuracy_second = self.microsecond or self.nanosecond or 0  # 精确的秒
+        self.accuracy = 6 if self.nanosecond is None else 9  # 秒精度
+        self.destination_mac = self.payload[:6]
+        self.source_mac = self.payload[6:12]
+        self.eth_type = EthType.from_value(self.payload[12:14])
 
     def parse_payload(self):
-        """解析载荷，目前仅支持 IPv4"""
-        if self.eth_type is not EthType.IPV4:
-            return
-        return IPv4(
-            item_api=self.item_api,
-            item_api_offset=self.item_api_offset + self.HEADER_LEN + 14,
+        if parse_cls := ETH_TYPE_2_CLS.get(self.eth_type):
+            return parse_cls(self.item_api, self.item_api_offset + self.HEADER_LEN + 14)
+
+    def show(self) -> str:
+        return (
+            f"[{self.time}]"
+            f" {self.len:4} Bytes"
+            f"  {mac2str(self.destination_mac)}"
+            f"  {mac2str(self.source_mac)}"
+            f"  {self.eth_type.name:10}"
         )

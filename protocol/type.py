@@ -1,4 +1,5 @@
 """协议类型"""
+
 import enum
 from enum import Enum
 
@@ -15,7 +16,7 @@ class EthType(Enum):
     IEEE_802_3 = None
 
     @staticmethod
-    def parse(value: bytes) -> "EthType":
+    def from_value(value: bytes) -> "EthType":
         if value <= b"\x05\xDC":  # 1500 及以下，IEEE 802.3
             return EthType.IEEE_802_3
         return EthType(value)

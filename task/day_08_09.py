@@ -35,30 +35,36 @@ IP地址  MAC地址
 import mmap
 
 from protocol.pcap import Pcap
+from protocol.type import EthType
 
 if __name__ == "__main__":
     with open("./data_day_08.pcap", "rb") as f:
         with mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ) as m:
             pcap = Pcap(item_api=m, item_api_offset=0)
-            packet_list = pcap.parse_payload()
-            print(f"总计 {len(packet_list)} 个数据包：")
-            for packet in packet_list:
-                print(packet, packet.parse_payload() or "")
+            for packet in pcap.parse_payload():
+                if packet.eth_type is not EthType.ARP:
+                    continue
+                arp = packet.parse_payload()
+                print(arp.show())
 
-    # for packet in packet_list:
-    #     print(packet)
-    # if packet.eth_type is EthType.ARP:
-    #     print()
-    # 输出格式
-    # [ARP请求] 谁 查询 某个IP 的MAC地址在哪里
-    # [ARP响应] 谁 回复 谁 某个IP 的MAC地址在我这里
-    #
-    # 示例
-    # [ARP请求] 192.168.1.1(6D-47-5E-2A-6C-9A) 查询 192.168.1.2 的MAC地址在哪里
-    # [ARP响应] 192.168.1.2(3C-5A-20-1B-7F-00) 回复 192.168.1.1(6D-47-5E-2A-6C-9A)：
-    #     192.168.1.2 的MAC地址在我这里
-    #
-    # 最后输出IP和MAC地址映射表：
-    # IP地址  MAC地址
-    # 192.168.1.1 6D-47-5E-2A-6C-9A
-    # 192.168.1.2 3C-5A-20-1B-7F-00
+# 结果
+# [ARP请求] 10.92.53.51(00-0C-29-7C-02-CA)     查询 10.92.53.1      的MAC地址在哪里
+# [ARP请求] 10.92.53.51(00-0C-29-7C-02-CA)     查询 10.92.53.1      的MAC地址在哪里
+# [ARP请求] 10.92.53.51(00-0C-29-7C-02-CA)     查询 10.92.53.1      的MAC地址在哪里
+# [ARP请求] 10.92.53.51(00-0C-29-7C-02-CA)     查询 10.92.53.1      的MAC地址在哪里
+# [ARP请求] 10.92.53.51(00-0C-29-7C-02-CA)     查询 10.92.53.1      的MAC地址在哪里
+# [ARP请求] 10.92.53.51(00-0C-29-7C-02-CA)     查询 10.92.53.1      的MAC地址在哪里
+# [ARP请求] 10.92.52.1(38-AD-8E-6C-1D-1B)      查询 10.92.53.36     的MAC地址在哪里
+# [ARP请求] 10.92.52.1(38-AD-8E-6C-1D-1B)      查询 10.92.53.36     的MAC地址在哪里
+# [ARP请求] 10.92.52.1(38-AD-8E-6C-1D-1B)      查询 10.92.53.36     的MAC地址在哪里
+# [ARP请求] 10.92.52.1(38-AD-8E-6C-1D-1B)      查询 10.92.52.255    的MAC地址在哪里
+# [ARP请求] 10.92.53.51(00-0C-29-7C-02-CA)     查询 10.92.53.87     的MAC地址在哪里
+# [ARP响应] 10.92.53.87(00-0C-29-84-37-07)     回复 10.92.53.51(00-0C-29-7C-02-CA)： 10.92.53.87 的MAC地址在我这里
+# [ARP请求] 10.92.52.1(38-AD-8E-6C-1D-1B)      查询 10.92.52.38     的MAC地址在哪里
+# [ARP请求] 10.92.52.1(38-AD-8E-6C-1D-1B)      查询 10.92.52.38     的MAC地址在哪里
+# [ARP请求] 10.92.52.1(38-AD-8E-6C-1D-1B)      查询 10.92.52.38     的MAC地址在哪里
+# [ARP请求] 10.92.53.51(00-0C-29-7C-02-CA)     查询 10.92.52.1      的MAC地址在哪里
+# [ARP响应] 10.92.52.1(38-AD-8E-6C-1D-1B)      回复 10.92.53.51(00-0C-29-7C-02-CA)： 10.92.52.1 的MAC地址在我这里
+# [ARP请求] 10.92.80.1(38-AD-8E-6C-1D-21)      查询 10.92.81.5      的MAC地址在哪里
+# [ARP请求] 10.92.80.1(38-AD-8E-6C-1D-21)      查询 10.92.81.5      的MAC地址在哪里
+# [ARP请求] 10.92.80.1(38-AD-8E-6C-1D-21)      查询 10.92.81.5      的MAC地址在哪里
