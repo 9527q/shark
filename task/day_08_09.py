@@ -15,7 +15,8 @@
 
 示例
 [ARP请求] 192.168.1.1(6D-47-5E-2A-6C-9A) 查询 192.168.1.2 的MAC地址在哪里
-[ARP响应] 192.168.1.2(3C-5A-20-1B-7F-00) 回复 192.168.1.1(6D-47-5E-2A-6C-9A)：192.168.1.2 的MAC地址在我这里
+[ARP响应] 192.168.1.2(3C-5A-20-1B-7F-00) 回复 192.168.1.1(6D-47-5E-2A-6C-9A)：
+    192.168.1.2 的MAC地址在我这里
 
 最后输出IP和MAC地址映射表：
 IP地址  MAC地址
@@ -23,10 +24,14 @@ IP地址  MAC地址
 192.168.1.2 3C-5A-20-1B-7F-00
 ······
 
-
-完结版依赖项目的版本：TODO
+完结版依赖项目的版本： TODO
 （有对项目内其他模块的依赖，记录下版本，方便以后运行）
 """
+# 如果不是在 Pycharm 里，打开下面三行注释
+# import os
+# import sys
+# sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 import datetime
 import mmap
 import struct
@@ -34,8 +39,8 @@ from dataclasses import dataclass
 from functools import cached_property
 from typing import Optional, Union
 
+from protocol import EthType, IpUpType
 from utils.classes import GetitemBase
-from utils.protocol import EthType, IpUpType
 
 
 def mac2str(mac: bytes) -> str:
@@ -79,14 +84,18 @@ class Packet(GetitemBase):
     HEADER_LEN = GETITEM_BASE_OFFSET = 16  # header 长度
 
     time_second_stamp: int  # 秒时间戳
-    microsecond: int  # 微秒
     cap_len: int
     len: int
+    microsecond: int = None  # 微秒，微秒与纳秒两个必须且只能传递一个
+    nanosecond: int = None  # 纳秒
 
     @property
-    def time(self) -> datetime.datetime:
-        dt = datetime.datetime.fromtimestamp(self.time_second_stamp)
-        return dt.replace(microsecond=self.microsecond)
+    def time(self) -> datetime.datetime:  # 没有微秒和纳秒
+        return datetime.datetime.fromtimestamp(self.time_second_stamp)
+
+    @property
+    def accuracy_second(self) -> int:  # 精确的微秒或纳秒
+        return self.microsecond if self.nanosecond is None else self.nanosecond
 
     @property
     def destination_mac(self) -> bytes:
@@ -116,7 +125,8 @@ class Packet(GetitemBase):
 
     def __str__(self):
         return (
-            f"[{self.time}]"
+            f"[{self.time}"
+            f".{self.accuracy_second:{'06' if self.nanosecond is None else '09'}}]"
             f" {self.len:4} Bytes"
             f"  {mac2str(self.destination_mac)}"
             f"  {mac2str(self.source_mac)}"
@@ -126,9 +136,11 @@ class Packet(GetitemBase):
 
 class Pcap:
     HEADER_LEN = 24  # header 长度
-    MODE_2_STRUCT_UNPACK = {
-        b"\xa1\xb2\xc3\xd4": ">",  # 大端模式标识
-        b"\xd4\xc3\xb2\xa1": "<",  # 小端模式标识
+    MAGIC_2_UNPACK_ACCURACY = {  # Pcap 的 Magic 对应的大小端模式和时间精确度
+        b"\xa1\xb2\xc3\xd4": (">", 6),  # 大端，微秒
+        b"\xa1\xb2\x3c\x4d": (">", 9),  # 大端，纳秒
+        b"\xd4\xc3\xb2\xa1": ("<", 6),  # 小端，微秒
+        b"\x4d\x3c\xb2\xa1": ("<", 9),  # 小端，纳秒
     }
 
     def __init__(self, pcap_file_path):
@@ -138,14 +150,14 @@ class Pcap:
             self.f.fileno(), 0, access=mmap.ACCESS_READ
         )  # type: Union[mmap.mmap, bytes]
 
-        # 检查文件大小和大小端模式
+        # 检查文件大小和 Magic
         self.size = self.m.size()
         if self.size < self.HEADER_LEN:
             raise ValueError(f"文件数据过短（{self.size}B），解析 Pcap 头部失败")
-        self.mode_tag = self.m[:4]
-        self.struct_tag = self.MODE_2_STRUCT_UNPACK.get(self.mode_tag)
-        if not self.struct_tag:
-            raise ValueError(f"不认识的 Pcap 标识：{self.mode_tag.hex()}")
+        self.magic = self.m[:4]
+        if self.magic not in self.MAGIC_2_UNPACK_ACCURACY:
+            raise ValueError(f"不认识的 Pcap Magic：{self.magic.hex()}")
+        self.unpack_tag, self.accuracy = self.MAGIC_2_UNPACK_ACCURACY[self.magic]
 
         self._packet_list = []  # Packet 列表
 
@@ -157,27 +169,30 @@ class Pcap:
 
     def unpack(self, fmt: str, data: bytes) -> tuple:
         """根据格式解析二进制数据"""
-        return struct.unpack(self.struct_tag + fmt, data)
+        return struct.unpack(self.unpack_tag + fmt, data)
 
     def parse_payload(self):
         if self._packet_list:
             return
 
         index = self.HEADER_LEN
+        packet_kw = {"item_api": self.m}
         while index < self.size:
             header = self.m[index : index + Packet.HEADER_LEN]
-            time_stamp, micro_s, cap_len, length = self.unpack("llll", header)
+            time_stamp, min_s, cap_len, length = self.unpack("llll", header)
+            packet_kw.update(
+                {"microsecond" if self.accuracy == 6 else "nanosecond": min_s}
+            )
             self._packet_list.append(
                 Packet(
                     time_second_stamp=time_stamp,
-                    microsecond=micro_s,
                     cap_len=cap_len,
                     len=length,
-                    item_api=self.m,
                     item_api_offset=index,
+                    **packet_kw,
                 )
             )
-            index += Packet.HEADER_LEN + length
+            index += Packet.HEADER_LEN + cap_len
 
     @cached_property
     def packet_list(self) -> list[Packet]:
@@ -190,4 +205,5 @@ if __name__ == "__main__":
     packet_list = pcap.packet_list
     print(f"总计 {len(packet_list)} 个数据包：")
     for packet in packet_list:
-        print(packet, packet.parse_payload() or "")
+        if packet.eth_type is EthType.ARP:
+            print(packet)
