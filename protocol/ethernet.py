@@ -35,7 +35,7 @@ class ARP(Getitem):
         self.source_mac = addr[:mac_len]
         self.source_ip = addr[mac_len : mac_len + ip_len]
         self.destination_mac = addr[mac_len + ip_len : 2 * mac_len + ip_len]
-        self.destination_ip = addr[2 * mac_len + ip_len : 2 * mac_len + 2 * ip_len]
+        self.destination_ip = addr[2 * mac_len + ip_len : 2 * (mac_len + ip_len)]
         ARP.MAP[self.source_ip] = self.source_mac
         if self.type == self.TYPE_RES:
             ARP.MAP[self.destination_ip] = self.destination_mac
