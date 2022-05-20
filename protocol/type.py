@@ -14,6 +14,12 @@ class EthType(Enum):
     LLDP = b"\x88\xcc"
     IEEE_802_3 = None
 
+    @staticmethod
+    def parse(value: bytes) -> "EthType":
+        if value <= b"\x05\xDC":  # 1500 及以下，IEEE 802.3
+            return EthType.IEEE_802_3
+        return EthType(value)
+
 
 @enum.unique
 class IpUpType(Enum):
