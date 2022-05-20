@@ -8,9 +8,10 @@ class EthType(Enum):
     """以太网帧协议类型 Ethernet II 和 IEEE 802.3"""
 
     IPV4 = b"\x08\x00"
-    IPV6 = b"\x86\xDD"
-    ARP = b"\x08\x06"
+    ARP = b"\x08\x06"  # Address Resolution Protocal，地址解析协议
     RARP = b"\x08\x35"
+    IPV6 = b"\x86\xDD"
+    LLDP = b"\x88\xcc"
     IEEE_802_3 = None
 
 
