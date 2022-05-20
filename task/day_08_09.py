@@ -39,7 +39,7 @@ from dataclasses import dataclass
 from functools import cached_property
 from typing import Optional, Union
 
-from protocol import EthType, Ipv4
+from protocol import EthType, IPv4
 from utils.classes import GetitemBase
 from utils.convert import mac2str
 
@@ -83,7 +83,7 @@ class Packet(GetitemBase):
         """解析载荷，目前仅支持 IPv4"""
         if self.eth_type is not EthType.IPV4:
             return
-        return Ipv4(
+        return IPv4(
             item_api=self.item_api,
             item_api_offset=self.item_api_offset + self.HEADER_LEN + 14,
         )

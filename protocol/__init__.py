@@ -5,7 +5,7 @@ from utils.convert import ip2str
 from .type import EthType, IpUpType
 
 
-class Ipv4(GetitemBase):
+class IPv4(GetitemBase):
     eth_type = EthType.IPV4
 
     @property
@@ -31,3 +31,7 @@ class Ipv4(GetitemBase):
             f"  {self.ttl:3}"
             f"  {self.up_type.name}"
         )
+
+
+class ARP(GetitemBase):
+    pass
