@@ -1,25 +1,7 @@
-"""以太网协议"""
 import struct
 
-from protocol.type import EthType, IpUpType
 from utils.classes import Getitem
 from utils.convert import ip2str, ipmac2str
-
-
-class IPv4(Getitem):
-    def __post_init__(self):
-        self.source_ip = self[12:16]
-        self.destination_ip = self[16:20]
-        self.ttl = self[8]
-        self.up_type = IpUpType(self[9])
-
-    def show(self) -> str:
-        return (
-            f"{ip2str(self.source_ip)}"
-            f"  {ip2str(self.destination_ip)}"
-            f"  {self.ttl:3}"
-            f"  {self.up_type.name}"
-        )
 
 
 class ARP(Getitem):
@@ -52,9 +34,3 @@ class ARP(Getitem):
                 f" 回复 {ipmac2str(self.destination_ip, self.destination_mac, '')}"
                 f"： {ip2str(self.source_ip, '')} 的MAC地址在我这里"
             )
-
-
-ETH_TYPE_2_CLS = {  # 类型常量和解析类的映射
-    EthType.IPV4: IPv4,
-    EthType.ARP: ARP,
-}
