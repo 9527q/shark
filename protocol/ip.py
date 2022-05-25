@@ -1,7 +1,8 @@
 from typing import Union
 
 from protocol.base import Protocol
-from protocol.defining import Icmp, Tcp
+from protocol.defining import Icmp
+from protocol.tcp import Tcp
 from protocol.udp import Udp
 from utils.convert import ip2str
 
@@ -26,7 +27,7 @@ class Ip(Protocol):
     def show(self, fill=" ") -> str:
         return (
             f"[{self.TYPE_NAME}]"
-            f" {ip2str(self.source_ip, fill)}  {ip2str(self.destination_ip, fill)}"
+            f" {ip2str(self.source_ip, fill)}->{ip2str(self.destination_ip, fill)}"
         )
 
 

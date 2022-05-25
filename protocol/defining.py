@@ -16,7 +16,3 @@ class Lldp(Protocol):
 
 class Icmp(Protocol):
     """ICMP"""
-
-
-class Tcp(Protocol):
-    """TCP"""
