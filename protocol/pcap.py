@@ -1,15 +1,17 @@
 """packet capture"""
 import struct
-from dataclasses import dataclass
 from datetime import datetime
+from typing import Iterator
 
-from protocol.ethernet import ETH_TYPE_2_CLS
-from protocol.type import EthType
-from utils.classes import Getitem
+from protocol.arp import ARP
+from protocol.base import Protocol
+from protocol.defining import Ieee802_3, Lldp, Rarp
+from protocol.ip import Ipv4, Ipv6
 from utils.convert import mac2str
 
 
-class Pcap(Getitem):
+class Pcap(Protocol):
+    HEADER_LEN = 24
     MAGIC_2_UNPACK_ACCURACY = {  # Pcap 的 Magic 对应的大小端模式和时间精确度
         b"\xa1\xb2\xc3\xd4": (">", 6),  # 大端，微秒 6 位精度
         b"\xa1\xb2\x3c\x4d": (">", 9),  # 大端，纳秒 9 位精度
@@ -17,60 +19,73 @@ class Pcap(Getitem):
         b"\x4d\x3c\xb2\xa1": ("<", 9),  # 小端，纳秒 9 位精度
     }
 
-    def __post_init__(self):
+    def __init__(self, total_len: int, **kwargs):
+        """
+        :param total_len: 总长度，单位字节
+        """
+        super().__init__(**kwargs)
+        self.total_len = total_len
+        # 二进制解析标识，时间精度
         self.unpack_tag, self.accuracy = self.MAGIC_2_UNPACK_ACCURACY[self[:4]]
 
-    def unpack(self, fmt: str, data: bytes) -> tuple:
-        """根据格式解析二进制数据"""
-        return struct.unpack(self.unpack_tag + fmt, data)
+    @property
+    def iter_packet(self) -> Iterator["Packet"]:
+        index = self.HEADER_LEN
+        while index < self.total_len:
+            packet = Packet(
+                self.unpack_tag, self.accuracy, **self.gen_getitem_kw(index)
+            )
+            yield packet
+            index += packet.total_len
 
     def parse_payload(self) -> list["Packet"]:
-        packet_list = []
-        index = 24
-        while header := self[index : index + Packet.HEADER_LEN]:
-            time_stamp, min_s, cap_len, length = self.unpack("llll", header)
-            packet_list.append(
-                Packet(
-                    item_api=self.item_api,
-                    item_api_offset=index,
-                    time_stamp=time_stamp,
-                    cap_len=cap_len,
-                    len=length,
-                    **{"microsecond" if self.accuracy == 6 else "nanosecond": min_s},
-                )
-            )
-            index += Packet.HEADER_LEN + cap_len
-        return packet_list
+        """临时使用建议用 iter_packet"""
+        return list(self.iter_packet)
 
 
-@dataclass
-class Packet(Getitem):
+class Packet(Protocol):
     HEADER_LEN = 16  # header 长度
+    TYPE_MAP = {
+        b"\x08\x00": Ipv4,
+        b"\x08\x06": ARP,
+        b"\x08\x35": Rarp,
+        b"\x86\xDD": Ipv6,
+        b"\x88\xcc": Lldp,
+    }
 
-    time_stamp: int  # 时间戳
-    cap_len: int  # Pcap 捕获的长度
-    len: int  # 网络中传递的长度
-    microsecond: int = None  # 微秒，微秒与纳秒两个必须且只能传递一个
-    nanosecond: int = None  # 纳秒
+    def __init__(self, unpack_tag: str, accuracy: int, **kwargs):
+        """
+        :param unpack_tag: 二进制解码标识（@=<>!）
+        :param accuracy: 时间精度
+        """
+        super().__init__(**kwargs)
+        self.accuracy = accuracy
+        time_stamp, _, self.cap_len = struct.unpack(unpack_tag + "lll", self[:12])
+        self.time = datetime.fromtimestamp(time_stamp)  # 没有微秒和纳秒的时间
 
-    def __post_init__(self):
-        self.payload = Getitem(self.item_api, self.item_api_offset + self.HEADER_LEN)
-        self.time = datetime.fromtimestamp(self.time_stamp)  # 没有微秒和纳秒的时间
-        self.accuracy_second = self.microsecond or self.nanosecond or 0  # 精确的秒
-        self.accuracy = 6 if self.nanosecond is None else 9  # 秒精度
-        self.destination_mac = self.payload[:6]
-        self.source_mac = self.payload[6:12]
-        self.eth_type = EthType.from_value(self.payload[12:14])
+    @property
+    def total_len(self) -> int:  # 总长度，单位字节
+        return self.HEADER_LEN + self.cap_len
+
+    @property
+    def destination_mac(self) -> bytes:
+        return self.payload[:6]
+
+    @property
+    def source_mac(self) -> bytes:
+        return self.payload[6:12]
 
     def parse_payload(self):
-        if parse_cls := ETH_TYPE_2_CLS.get(self.eth_type):
-            return parse_cls(self.item_api, self.item_api_offset + self.HEADER_LEN + 14)
+        if (tp := self.payload[12:14]) <= b"\x05\xDC":  # 1500 及以下，IEEE 802.3
+            cls = Ieee802_3
+        else:
+            cls = self.TYPE_MAP[tp]
+        return cls(**self.gen_getitem_kw(self.HEADER_LEN + 14))
 
     def show(self) -> str:
         return (
             f"[{self.time}]"
-            f" {self.len:4} Bytes"
+            f" {self.cap_len:4} Bytes"
             f"  {mac2str(self.destination_mac)}"
             f"  {mac2str(self.source_mac)}"
-            f"  {self.eth_type.name:10}"
         )
