@@ -61,7 +61,7 @@ class Packet(Protocol):
         """
         super().__init__(**kwargs)
         self.accuracy = accuracy
-        time_stamp, _, self.cap_len = struct.unpack(unpack_tag + "lll", self[:12])
+        time_stamp, _, self.cap_len = struct.unpack(unpack_tag + "LLL", self[:12])
         self.time = datetime.fromtimestamp(time_stamp)  # 没有微秒和纳秒的时间
 
     @property
