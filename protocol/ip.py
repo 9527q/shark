@@ -24,6 +24,12 @@ class Ip(Protocol):
     def parse_payload(self) -> _UP_TYPE:
         """解析载荷"""
 
+    def show(self, fill=" ") -> str:
+        return (
+            f"[{self.TYPE_NAME}]"
+            f" {ip2str(self.source_ip, fill)}  {ip2str(self.destination_ip, fill)}"
+        )
+
 
 class Ipv4(Ip):
     TYPE_NAME = "IPv4"
@@ -60,17 +66,18 @@ class Ipv4(Ip):
         cls = self.TYPE_MAP[self[9]]
         return cls(**self.gen_getitem_kw(self.HEADER_LEN))
 
-    def show(self) -> str:
-        return (
-            f"{ip2str(self.source_ip)}"
-            f"  {ip2str(self.destination_ip)}"
-            f"  {self.ttl:3}"
-        )
-
 
 class Ipv6(Ip):
     TYPE_NAME = "IPv6"
     HEADER_LEN = 320
+
+    @property
+    def source_ip(self) -> bytes:
+        return self[8:24]
+
+    @property
+    def destination_ip(self) -> bytes:
+        return self[24:40]
 
     def parse_payload(self) -> _UP_TYPE:
         cls = self.TYPE_MAP[self[6]]
