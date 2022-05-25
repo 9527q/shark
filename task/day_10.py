@@ -28,17 +28,28 @@
 # sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import mmap
+from collections import defaultdict
 
 from protocol.ip import Ipv4, Ipv6
 from protocol.pcap import Pcap
+from protocol.udp import Udp
+from utils.convert import ip2str
+
+
+def main(mmap_obj: mmap.mmap):
+    pcap = Pcap(item_api=mmap_obj, item_api_offset=0, total_len=mmap_obj.size())
+    for packet in pcap.iterate_packet():
+        ip = packet.parse_payload()
+        # 只管 IP 协议的
+        if not isinstance(ip, (Ipv4, Ipv6)):
+            continue
+        udp = ip.parse_payload()
+        if not isinstance(udp, Udp):
+            continue
+        print(packet.show(), ip.TYPE_NAME, udp.TYPE_NAME)
+
 
 if __name__ == "__main__":
     with open("data_day_10.pcap", "rb") as f:
-        with mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ) as m:  # type: mmap.mmap
-            pcap = Pcap(item_api=m, item_api_offset=0, total_len=m.size())
-            ids = []
-            for packet in pcap.iterate_packet():
-                ip = packet.parse_payload()
-                if not isinstance(ip, (Ipv4, Ipv6)):
-                    continue
-                print(ip.TYPE_NAME, ip.parse_payload().TYPE_NAME)
+        with mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ) as m:
+            main(m)
