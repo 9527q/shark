@@ -35,7 +35,7 @@ class Ipv4(Ip):
 
     @property
     def HEADER_LEN(self) -> int:  # 首部长度，单位字节
-        return (self[1] & 0b00001111) * 4
+        return (self[0] & 0b1111) * 4
 
     @property
     def id(self) -> bytes:  # 标识
@@ -68,7 +68,7 @@ class Ipv4(Ip):
 
 class Ipv6(Ip):
     TYPE_NAME = "IPv6"
-    HEADER_LEN = 320
+    HEADER_LEN = 40
 
     @property
     def source_ip(self) -> bytes:
