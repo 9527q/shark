@@ -19,4 +19,7 @@ class Udp(Protocol):
         return int.from_bytes(self[4:6], "big")
 
     def show(self):
-        return f"{self.source_port}->{self.destination_port} {self.total_len} Bytes"
+        return (
+            f"{self.source_port:<5}->{self.destination_port:<5}"
+            f" {self.total_len:>3} Bytes"
+        )
