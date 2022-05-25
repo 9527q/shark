@@ -1,4 +1,6 @@
 """类型转换相关"""
+
+
 def mac2str(mac: bytes, fill: str = " ", /) -> str:
     res = "-".join(f"{i:02X}" for i in mac)
     if fill:
@@ -7,9 +9,14 @@ def mac2str(mac: bytes, fill: str = " ", /) -> str:
 
 
 def ip2str(ip: bytes, fill: str = " ", /) -> str:
-    res = ".".join(str(i) for i in ip)
-    if fill:
-        res = res.ljust(15, fill)
+    if len(ip) == 4:
+        res = ".".join(str(i) for i in ip)
+        if fill:
+            res = res.ljust(15, fill)
+    else:
+        res = ":".join(f"{i:X}" for i in ip[::2])
+        if fill:
+            res = res.ljust(39, fill)
     return res
 
 
