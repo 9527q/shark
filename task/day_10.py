@@ -28,12 +28,10 @@
 # sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import mmap
-from collections import defaultdict
 
 from protocol.ip import Ipv4, Ipv6
 from protocol.pcap import Pcap
 from protocol.udp import Udp
-from utils.convert import ip2str
 
 
 def main(mmap_obj: mmap.mmap):
@@ -46,7 +44,7 @@ def main(mmap_obj: mmap.mmap):
         udp = ip.parse_payload()
         if not isinstance(udp, Udp):
             continue
-        print(packet.show(), ip.TYPE_NAME, udp.TYPE_NAME)
+        print(packet.show(), ip.show(""), udp.show())
 
 
 if __name__ == "__main__":
