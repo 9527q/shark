@@ -1,13 +1,15 @@
 """packet capture"""
 import struct
 from datetime import datetime
-from typing import Iterator
+from typing import Iterator, Union
 
 from protocol.arp import ARP
 from protocol.base import Protocol
 from protocol.defining import Ieee802_3, Lldp, Rarp
 from protocol.ip import Ipv4, Ipv6
 from utils.convert import mac2str
+
+_UP_TYPE = Union[Ieee802_3, Lldp, Rarp, Ipv6, Ipv4, ARP]
 
 
 class Pcap(Protocol):
@@ -74,7 +76,7 @@ class Packet(Protocol):
     def source_mac(self) -> bytes:
         return self.payload[6:12]
 
-    def parse_payload(self):
+    def parse_payload(self) -> _UP_TYPE:
         if (tp := self.payload[12:14]) <= b"\x05\xDC":  # 1500 及以下，IEEE 802.3
             cls = Ieee802_3
         else:

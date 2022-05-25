@@ -36,6 +36,9 @@ if __name__ == "__main__":
     with open("data_day_10.pcap", "rb") as f:
         with mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ) as m:  # type: mmap.mmap
             pcap = Pcap(item_api=m, item_api_offset=0, total_len=m.size())
+            ids = []
             for packet in pcap.iterate_packet():
-                if isinstance(ip_ins := packet.parse_payload(), (Ipv6, Ipv4)):
-                    print(ip_ins.NAME, ip_ins.up_type)
+                ip = packet.parse_payload()
+                if not isinstance(ip, (Ipv4, Ipv6)):
+                    continue
+                print(ip.TYPE_NAME, ip.parse_payload().TYPE_NAME)

@@ -12,3 +12,11 @@ class Rarp(Protocol):
 
 class Lldp(Protocol):
     """LLDP"""
+
+
+class Icmp(Protocol):
+    """ICMP"""
+
+
+class Tcp(Protocol):
+    """TCP"""

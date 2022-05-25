@@ -1,5 +1,5 @@
-from utils.classes import Getitem
+from protocol.base import Protocol
 
 
-class Udp(Getitem):
+class Udp(Protocol):
     """UDP User Datagram Protocol（用户数据报协议）"""

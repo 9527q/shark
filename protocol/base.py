@@ -24,4 +24,4 @@ class Protocol(Getitem):
         return Getitem(**self.gen_getitem_kw(self.HEADER_LEN))
 
     def parse_payload(self):  # 解析载荷
-        pass
+        return type("未实现", (Protocol,), {})(**self.payload.gen_getitem_kw())
