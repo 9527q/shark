@@ -1,4 +1,3 @@
-import struct
 from typing import Union
 
 from protocol.base import Protocol
@@ -44,11 +43,11 @@ class Ipv4(Ip):
 
     @property
     def fo(self) -> int:  # 片偏移
-        return struct.unpack(">H", self[6:8])[0] & 0b1111111111111
+        return int.from_bytes(self[6:8], "big") & 0b1111111111111
 
     @property
     def flags(self) -> str:  # 分片标识
-        return f"{struct.unpack('>H', self[6:8])[0] >> 13:03b}"
+        return f"{self[6] >> 5:03b}"
 
     @property
     def ttl(self) -> int:
