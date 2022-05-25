@@ -19,7 +19,7 @@ class Protocol(Getitem):
 
     # 类属性，类型名称，默认类名大写
     TYPE_NAME = classproperty(lambda cls: cls.__name__.upper())
-    HEADER_LEN = 0  # 首部长度
+    HEADER_LEN = 0  # 首部长度，单位字节
 
     @cached_property
     def payload(self):
