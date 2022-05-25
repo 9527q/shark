@@ -1,4 +1,5 @@
-"""类型转换函数"""
+"""类型转换相关"""
+import struct
 
 
 def mac2str(mac: bytes, fill: str = " ", /) -> str:
@@ -20,3 +21,15 @@ def ipmac2str(ip: bytes, mac: bytes, fill: str = " ", /) -> str:
     if fill:
         res = res.ljust(34, fill)
     return res
+
+
+def gen_unpack_func(unpack_fmt_head_tag: str):
+    """
+    生成一个解码函数，用法和 struct.unpack 一样，但是头格式已经写好了
+    :param unpack_fmt_head_tag: struct.unpack 的 fmt 的头格式（@=<>!）
+    """
+
+    def unpack(fmt: str, data: bytes) -> tuple:
+        return struct.unpack(unpack_fmt_head_tag + fmt, data)
+
+    return unpack
