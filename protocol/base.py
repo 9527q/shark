@@ -28,10 +28,3 @@ class Protocol(Getitem):
 
     def parse_payload(self):
         """解析载荷"""
-
-    def __init__(self, *args, **kwargs):
-        super(Protocol, self).__init__(*args, **kwargs)
-        self.__post_init__()
-
-    def __post_init__(self):
-        """如果有一些想在初始化时被调用的东西，放在这里"""
