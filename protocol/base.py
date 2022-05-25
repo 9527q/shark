@@ -13,18 +13,15 @@ from utils.classes import Getitem, classproperty
 
 
 class Protocol(Getitem):
-    """
-    所有协议都继承自此类，声明了一些基础方法，子类可以重写之
-    """
+    """所有协议都继承自此类，声明了一些基础方法，子类可以重写之"""
 
     # 类型名称，默认类名大写，是一个类属性
     TYPE_NAME = classproperty(lambda cls: cls.__name__.upper())
     HEADER_LEN = 0  # 首部长度，单位字节
 
     @cached_property
-    def payload(self):
-        """载荷"""
+    def payload(self):  # 载荷
         return Getitem(**self.gen_getitem_kw(self.HEADER_LEN))
 
-    def parse_payload(self):
-        """解析载荷"""
+    def parse_payload(self):  # 解析载荷
+        pass
