@@ -40,11 +40,15 @@ class IpUpType(Enum):
 class Ipv4(Getitem):
     NAME = "IPv4"
 
-    def __post_init__(self):
+    @property
+    def up_type(self):
+        return IpUpType(self[9])
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self.source_ip = self[12:16]
         self.destination_ip = self[16:20]
         self.ttl = self[8]
-        self.up_type = IpUpType(self[9])
 
     def show(self) -> str:
         return (
@@ -58,5 +62,6 @@ class Ipv4(Getitem):
 class Ipv6(Getitem):
     NAME = "IPv6"
 
-    def __post_init__(self):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self.up_type = None

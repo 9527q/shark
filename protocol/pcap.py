@@ -28,8 +28,7 @@ class Pcap(Protocol):
         # 二进制解析标识，时间精度
         self.unpack_tag, self.accuracy = self.MAGIC_2_UNPACK_ACCURACY[self[:4]]
 
-    @property
-    def iter_packet(self) -> Iterator["Packet"]:
+    def iterate_packet(self) -> Iterator["Packet"]:
         index = self.HEADER_LEN
         while index < self.total_len:
             packet = Packet(
@@ -39,8 +38,8 @@ class Pcap(Protocol):
             index += packet.total_len
 
     def parse_payload(self) -> list["Packet"]:
-        """临时使用建议用 iter_packet"""
-        return list(self.iter_packet)
+        """临时使用建议用 iterate_packet"""
+        return list(self.iterate_packet())
 
 
 class Packet(Protocol):
