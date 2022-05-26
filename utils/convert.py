@@ -37,11 +37,8 @@ def ip2str(ip: bytes, /) -> str:
         return ":".join(res)
 
 
-def ipmac2str(ip: bytes, mac: bytes, fill: str = " ", /) -> str:
-    res = f"{ip2str(ip)}({mac2str(mac)})"
-    if fill:
-        res = res.ljust(34, fill)
-    return res
+def ipmac2str(ip: bytes, mac: bytes, /) -> str:
+    return f"{ip2str(ip)}({mac2str(mac)})"
 
 
 def bytes2int(bytes_data: bytes, byteorder="big") -> int:
