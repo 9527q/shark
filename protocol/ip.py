@@ -4,7 +4,7 @@ from protocol.base import Protocol
 from protocol.defining import Icmp
 from protocol.tcp import Tcp
 from protocol.udp import Udp
-from utils.convert import ip2str
+from utils.convert import bytes2int, ip2str
 
 _UP_TYPE = Union[Udp, Tcp, Icmp]
 
@@ -27,7 +27,7 @@ class Ip(Protocol):
     def show(self, fill=" ") -> str:
         return (
             f"[{self.TYPE_NAME}]"
-            f" {ip2str(self.source_ip, fill)}->{ip2str(self.destination_ip, fill)}"
+            f" {ip2str(self.source_ip, fill)}{ip2str(self.destination_ip, fill)}"
         )
 
 
@@ -44,7 +44,7 @@ class Ipv4(Ip):
 
     @property
     def fo(self) -> int:  # 片偏移
-        return int.from_bytes(self[6:8], "big") & 0b1111111111111
+        return bytes2int(self[6:8]) & 0b1111111111111
 
     @property
     def flags(self) -> str:  # 分片标识

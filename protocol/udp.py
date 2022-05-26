@@ -1,5 +1,6 @@
 from protocol.base import Protocol
 from protocol.dns import Dns
+from utils.convert import bytes2int
 
 
 class Udp(Protocol):
@@ -9,15 +10,15 @@ class Udp(Protocol):
 
     @property
     def source_port(self) -> int:
-        return int.from_bytes(self[:2], "big")
+        return bytes2int(self[:2])
 
     @property
     def destination_port(self) -> int:
-        return int.from_bytes(self[2:4], "big")
+        return bytes2int(self[2:4])
 
     @property
     def total_len(self) -> int:  # 总长度，单位字节
-        return int.from_bytes(self[4:6], "big")
+        return bytes2int(self[4:6])
 
     def parse_payload(self) -> Dns:
         if self.source_port == 53 or self.destination_port == 53:
@@ -25,4 +26,4 @@ class Udp(Protocol):
         return super().parse_payload()
 
     def show(self):
-        return f"[UDP] {self.source_port:<5}->{self.destination_port:<5}"
+        return f"[UDP] {self.source_port:<5} {self.destination_port:<5}"

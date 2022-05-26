@@ -1,5 +1,6 @@
 from protocol.base import Protocol
 from protocol.dns import Dns
+from utils.convert import bytes2int
 
 
 class Tcp(Protocol):
@@ -7,11 +8,11 @@ class Tcp(Protocol):
 
     @property
     def source_port(self) -> int:
-        return int.from_bytes(self[:2], "big")
+        return bytes2int(self[:2])
 
     @property
     def destination_port(self) -> int:
-        return int.from_bytes(self[2:4], "big")
+        return bytes2int(self[2:4])
 
     @property
     def HEADER_LEN(self) -> int:  # 首部长度，单位字节
@@ -23,4 +24,4 @@ class Tcp(Protocol):
         return super().parse_payload()
 
     def show(self):
-        return f"[TCP] {self.source_port:<5}->{self.destination_port:<5}"
+        return f"[TCP] {self.source_port:<5} {self.destination_port:<5}"

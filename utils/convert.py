@@ -28,7 +28,7 @@ def ip2str(ip: bytes, fill: str = " ", /) -> str:
                     max_zero_cnt, max_zero_pos = zero_cnt, zero_pos
             elif is_new is False:
                 is_new, zero_cnt, zero_pos = True, 0, None
-            res.append(f"{int.from_bytes(bytes2, 'big'):X}")
+            res.append(f"{bytes2int(bytes2):X}")
         # 找出 0 后将其删掉
         if max_zero_pos is not None:
             max_zero_pos //= 2
@@ -48,3 +48,7 @@ def ipmac2str(ip: bytes, mac: bytes, fill: str = " ", /) -> str:
     if fill:
         res = res.ljust(34, fill)
     return res
+
+
+def bytes2int(bytes_data: bytes, byteorder="big") -> int:
+    return int.from_bytes(bytes_data, byteorder)

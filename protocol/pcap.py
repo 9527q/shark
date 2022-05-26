@@ -86,7 +86,7 @@ class Packet(Protocol):
     def show(self) -> str:
         return (
             f"[{self.time}]"
-            f" {self.cap_len:4} Bytes"
-            f"  {mac2str(self.destination_mac)}"
+            f"{self.cap_len:4} Bytes"
             f"  {mac2str(self.source_mac)}"
+            f"  {mac2str(self.destination_mac)}"
         )
