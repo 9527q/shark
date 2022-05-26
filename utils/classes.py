@@ -21,7 +21,7 @@ class Getitem:
         self,
         *,
         item_api: Union[bytes, str, list, tuple],
-        item_api_offset: int,
+        item_api_offset: int = 0,
     ):
         self.item_api = item_api
         self.item_api_offset = item_api_offset

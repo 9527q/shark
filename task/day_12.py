@@ -44,7 +44,7 @@ from utils.convert import ip2str
 
 
 def main(mmap_obj: mmap.mmap):
-    pcap = Pcap(item_api=mmap_obj, item_api_offset=0, total_len=mmap_obj.size())
+    pcap = Pcap(item_api=mmap_obj, total_len=mmap_obj.size())
 
     # 遍历 Packet 寻找 DNS 报文
     for packet in pcap.iterate_packet():
