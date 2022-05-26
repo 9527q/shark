@@ -84,9 +84,12 @@ class Dns(Protocol):
         while zone_len := self[index]:
             if zone_len >= 192:  # 高两位为1，压缩标签
                 index += 2  # 压缩标签占2个字节
+                break
             else:
                 index += zone_len + 1
-        return index - domain_offset + 1
+        else:
+            index += 1  # 非压缩标签后面还有一个字节 0
+        return index - domain_offset
 
     @staticmethod
     def iterate_cache_domain_address() -> Iterator[tuple[str, bytes]]:
@@ -108,7 +111,7 @@ class Dns(Protocol):
             max_domain_len = max(len(d) for d, _ in answers)
             data = (
                 f"{d:{max_domain_len}}"
-                f"  ->  {ip2str(a) if isinstance(a, bytes) else a}"
+                f"  ->  {a if isinstance(a, str) else ip2str(a)}"
                 for d, a in answers
             )
         return f"{t1}{head}\t{t2.join(data)}"
