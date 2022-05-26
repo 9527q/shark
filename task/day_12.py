@@ -66,7 +66,7 @@ def main(mmap_obj: mmap.mmap):
         print("-" * 100)
 
     # 输出所有的 DNS 缓存结果
-    print("")
+    print()
     print("域名".ljust(50), "IP地址")
     for domain, ip_address in Dns.iterate_cache_domain_address():
         print(domain.ljust(50), ip2str(ip_address))
