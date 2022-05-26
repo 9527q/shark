@@ -32,5 +32,5 @@ class ARP(Getitem):
             return (
                 f"[ARP响应] {ipmac2str(self.source_ip, self.source_mac)}"
                 f" 回复 {ipmac2str(self.destination_ip, self.destination_mac, '')}"
-                f"： {ip2str(self.source_ip, '')} 的MAC地址在我这里"
+                f"： {ip2str(self.source_ip)} 的MAC地址在我这里"
             )

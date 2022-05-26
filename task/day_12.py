@@ -60,7 +60,7 @@ def main(mmap_obj: mmap.mmap):
 
         # 依次输出 Packet、IP、TCP/UDP、DNS
         print(packet.show())
-        print(ip.show("", tab_cnt=1))
+        print(ip.show(tab_cnt=1))
         print(tcp_udp.show(tab_cnt=2))
         print(dns.show(tab_cnt=3))
         print("-" * 100)

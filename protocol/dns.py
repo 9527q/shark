@@ -108,7 +108,7 @@ class Dns(Protocol):
             max_domain_len = max(len(d) for d, _ in answers)
             data = (
                 f"{d:{max_domain_len}}"
-                f"  ->  {ip2str(a, '') if isinstance(a, bytes) else a}"
+                f"  ->  {ip2str(a) if isinstance(a, bytes) else a}"
                 for d, a in answers
             )
         return f"{t1}{head}\t{t2.join(data)}"

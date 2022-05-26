@@ -5,14 +5,11 @@ def mac2str(mac: bytes, /) -> str:
     return mac.hex("-").upper()
 
 
-def ip2str(ip: bytes, fill: str = " ", /) -> str:
-    """IPv6 使用简写输出"""
+def ip2str(ip: bytes, /) -> str:
+    """IP 地址转 str，IPv6 使用简写输出"""
     if len(ip) == 4:
-        res = ".".join(str(i) for i in ip)
-        if fill:
-            res = res.ljust(15, fill)
+        return ".".join(str(i) for i in ip)
     else:
-        # IPv6 使用简写
         res = []
         # 先找出里面连续长度最长的 0
         is_new, zero_cnt, zero_pos = True, 0, None
@@ -37,14 +34,11 @@ def ip2str(ip: bytes, fill: str = " ", /) -> str:
                 res += [""]
         if max_zero_pos == 0:
             res = [""] + res
-        res = ":".join(res)
-        if fill:
-            res = res.ljust(39, fill)
-    return res
+        return ":".join(res)
 
 
 def ipmac2str(ip: bytes, mac: bytes, fill: str = " ", /) -> str:
-    res = f"{ip2str(ip, '')}({mac2str(mac)})"
+    res = f"{ip2str(ip)}({mac2str(mac)})"
     if fill:
         res = res.ljust(34, fill)
     return res
