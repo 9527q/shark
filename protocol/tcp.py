@@ -23,5 +23,6 @@ class Tcp(Protocol):
             return Dns(**self.gen_getitem_kw(self.HEADER_LEN))
         return super().parse_payload()
 
-    def show(self):
-        return f"[TCP] {self.source_port:<5} {self.destination_port:<5}"
+    def show(self, tab_cnt=0):
+        t = "\t" * tab_cnt
+        return f"{t}[TCP] {self.source_port}  ->  {self.destination_port}"
