@@ -7,7 +7,7 @@ from utils.convert import bytes2int, ip2str
 
 
 class Dns(Protocol):
-    """Domain Name System"""
+    """DNS，Domain Name System"""
 
     HEADER_LEN = 12  # 首部长度，单位字节
     DOMAIN_2_DATA: dict[str, set[str, bytes]] = defaultdict(set)  # 域名解析结果
