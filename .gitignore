@@ -7,3 +7,9 @@ __pycache__/
 
 # mac
 .DS_Store
+
+# day_14 task result
+arp.txt
+ip.txt
+udp.txt
+dns.txt
