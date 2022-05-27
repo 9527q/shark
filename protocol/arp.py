@@ -1,7 +1,7 @@
 import struct
 
 from utils.classes import Getitem
-from utils.convert import ip2str, ipmac2str
+from utils.convert import ip2str
 
 
 class ARP(Getitem):
@@ -25,12 +25,12 @@ class ARP(Getitem):
     def show(self) -> str:
         if self.type == self.TYPE_ASK:
             return (
-                f"[ARP请求] {ipmac2str(self.source_ip, self.source_mac)}"
+                f"[ARP请求] {(self.source_ip, self.source_mac)}"
                 f" 查询 {ip2str(self.destination_ip)} 的MAC地址在哪里"
             )
         else:
             return (
-                f"[ARP响应] {ipmac2str(self.source_ip, self.source_mac)}"
-                f" 回复 {ipmac2str(self.destination_ip, self.destination_mac)}"
+                f"[ARP响应] {(self.source_ip, self.source_mac)}"
+                f" 回复 {(self.destination_ip, self.destination_mac)}"
                 f"： {ip2str(self.source_ip)} 的MAC地址在我这里"
             )

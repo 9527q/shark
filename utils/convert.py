@@ -6,7 +6,7 @@ def mac2str(mac: bytes, /) -> str:
 
 
 def ip2str(ip: bytes, /) -> str:
-    """IP 地址转 str，IPv6 使用简写输出"""
+    """IP 地址转 str，如果输入是 IPv6 的话使用简写输出"""
     if len(ip) == 4:
         return ".".join(str(i) for i in ip)
     else:
@@ -35,10 +35,6 @@ def ip2str(ip: bytes, /) -> str:
         if max_zero_pos == 0:
             res = [""] + res
         return ":".join(res)
-
-
-def ipmac2str(ip: bytes, mac: bytes, /) -> str:
-    return f"{ip2str(ip)}({mac2str(mac)})"
 
 
 def bytes2int(bytes_data: bytes, byteorder="big") -> int:
