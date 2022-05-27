@@ -1,10 +1,10 @@
 import struct
 
-from utils.classes import Getitem
 from utils.convert import ip2str
+from protocol.base import Protocol
 
 
-class ARP(Getitem):
+class Arp(Protocol):
     MAP = {}  # 映射表，同一线程下自动存储，使用类属性调用之
     TYPE_ASK = 1  # 请求
     TYPE_RES = 2  # 应答
@@ -18,9 +18,9 @@ class ARP(Getitem):
         self.source_ip = addr[mac_len : mac_len + ip_len]
         self.destination_mac = addr[mac_len + ip_len : 2 * mac_len + ip_len]
         self.destination_ip = addr[2 * mac_len + ip_len : 2 * (mac_len + ip_len)]
-        ARP.MAP[self.source_ip] = self.source_mac
+        Arp.MAP[self.source_ip] = self.source_mac
         if self.type == self.TYPE_RES:
-            ARP.MAP[self.destination_ip] = self.destination_mac
+            Arp.MAP[self.destination_ip] = self.destination_mac
 
     def show(self) -> str:
         if self.type == self.TYPE_ASK:

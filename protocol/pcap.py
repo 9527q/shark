@@ -3,13 +3,13 @@ import struct
 from datetime import datetime
 from typing import Iterator, Union
 
-from protocol.arp import ARP
+from protocol.arp import Arp
 from protocol.base import Protocol
 from protocol.defining import Ieee802_3, Lldp, Rarp
 from protocol.ip import Ipv4, Ipv6
 from utils.convert import mac2str
 
-_UP_TYPE = Union[Ieee802_3, Lldp, Rarp, Ipv6, Ipv4, ARP]
+_UP_TYPE = Union[Ieee802_3, Lldp, Rarp, Ipv6, Ipv4, Arp]
 
 
 class Pcap(Protocol):
@@ -48,7 +48,7 @@ class Packet(Protocol):
     HEADER_LEN = 16  # header 长度
     TYPE_MAP = {
         b"\x08\x00": Ipv4,
-        b"\x08\x06": ARP,
+        b"\x08\x06": Arp,
         b"\x08\x35": Rarp,
         b"\x86\xDD": Ipv6,
         b"\x88\xcc": Lldp,
