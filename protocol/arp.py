@@ -1,5 +1,3 @@
-from functools import cached_property
-
 from protocol.base import Protocol
 from utils.convert import bytes2int, ip2str, mac2str
 
@@ -9,17 +7,14 @@ class Arp(Protocol):
     TYPE_ASK = 1  # 请求
     TYPE_RES = 2  # 应答
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.mac_len = self.data[self.offset + 4]
+        self.ip_len = self.data[self.offset + 5]
+
     @property
     def type(self) -> int:  # 1 请求，2 应答
         return bytes2int(self.data[self.offset + 6 : self.offset + 8])
-
-    @cached_property
-    def mac_len(self) -> int:  # 单位字节
-        return self.data[self.offset + 4]
-
-    @cached_property
-    def ip_len(self) -> int:  # 单位字节
-        return self.data[self.offset + 5]
 
     @property
     def source_ip(self) -> bytes:

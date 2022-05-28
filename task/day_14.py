@@ -93,6 +93,19 @@ def main(
 
 if __name__ == "__main__":
     pcap_n = "data_day_14.pcap"
+    # with open(pcap_n) as f, mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ) as mm:
+    #     with open("arp.txt", "w") as arp_f, open("ip.txt", "w") as ip_f:
+    #         with open("udp.txt", "w") as udp_f, open("dns.txt", "w") as dns_f:
+    #             main(
+    #                 mm,
+    #                 arp_write=arp_f.write,
+    #                 ip_write=ip_f.write,
+    #                 udp_write=udp_f.write,
+    #                 dns_write=dns_f.write,
+    #             )
+
+    # 运行三次
+    print("版本：用位置替换掉所有的join")
     for _ in range(3):
         with open(pcap_n) as f, mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ) as mm:
             with open("arp.txt", "w") as arp_f, open("ip.txt", "w") as ip_f:
@@ -116,13 +129,13 @@ if __name__ == "__main__":
     #         f2.write(content)
 
 # 结果
-# 版本：去掉item功能
-# 函数 main 开始：2022-05-28 15:28:03.079932
-# 函数 main 结束：2022-05-28 15:28:36.052995
-# 函数 main 耗时：32.973 秒
-# 函数 main 开始：2022-05-28 15:28:36.130250
-# 函数 main 结束：2022-05-28 15:29:08.842489
-# 函数 main 耗时：32.712 秒
-# 函数 main 开始：2022-05-28 15:29:08.903490
-# 函数 main 结束：2022-05-28 15:29:41.495869
-# 函数 main 耗时：32.592 秒
+# 版本：改掉join
+# 函数 main 开始：2022-05-28 17:04:27.138889
+# 函数 main 结束：2022-05-28 17:04:56.403130
+# 函数 main 耗时：29.264 秒
+# 函数 main 开始：2022-05-28 17:04:56.466258
+# 函数 main 结束：2022-05-28 17:05:25.611397
+# 函数 main 耗时：29.145 秒
+# 函数 main 开始：2022-05-28 17:05:25.665496
+# 函数 main 结束：2022-05-28 17:05:54.877449
+# 函数 main 耗时：29.212 秒

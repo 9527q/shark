@@ -8,7 +8,7 @@ def mac2str(mac: bytes, /) -> str:
 def ip2str(ip: bytes, /) -> str:
     """IP 地址转 str，如果输入是 IPv6 的话使用简写输出"""
     if len(ip) == 4:
-        return ".".join(str(i) for i in ip)
+        return f"{ip[0]}.{ip[1]}.{ip[2]}.{ip[3]}"
     else:
         res = []
         # 先找出里面连续长度最长的 0
