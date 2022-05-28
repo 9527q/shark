@@ -1,12 +1,14 @@
-from protocol.base import Protocol
 from protocol.dns import Dns
 from utils.convert import bytes2int
 
 
-class Udp(Protocol):
-    """UDP User Datagram Protocol（用户数据报协议）"""
+class Udp:
 
     HEADER_LEN = 8
+
+    def __init__(self, data: bytes, offset: int):
+        self.data = data
+        self.offset = offset
 
     @property
     def source_port(self) -> int:
@@ -23,7 +25,6 @@ class Udp(Protocol):
     def parse_payload(self) -> Dns:
         if self.source_port == 53 or self.destination_port == 53:
             return Dns(data=self.data, offset=self.offset + self.HEADER_LEN)
-        return super().parse_payload()
 
     def show(self):
         return f"{self.source_port} {self.destination_port}"

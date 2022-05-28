@@ -1,14 +1,14 @@
-from protocol.base import Protocol
 from utils.convert import bytes2int, ip2str, mac2str
 
 
-class Arp(Protocol):
+class Arp:
     MAP = {}  # 映射表，同一线程下自动存储，使用类属性调用之
     TYPE_ASK = 1  # 请求
     TYPE_RES = 2  # 应答
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, data: bytes, offset: int):
+        self.data = data
+        self.offset = offset
         self.mac_len = self.data[self.offset + 4]
         self.ip_len = self.data[self.offset + 5]
 

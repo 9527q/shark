@@ -1,16 +1,18 @@
 from collections import defaultdict
-from functools import cached_property
 from typing import Iterator, Union
 
-from protocol.base import Protocol
 from utils.convert import bytes2int, ip2str
 
 
-class Dns(Protocol):
+class Dns:
     """DNS，Domain Name System"""
 
     HEADER_LEN = 12  # 首部长度，单位字节
     DOMAIN_2_DATA: dict[str, set[str, bytes]] = defaultdict(set)  # 域名解析结果
+
+    def __init__(self, data: bytes, offset: int):
+        self.data = data
+        self.offset = offset
 
     @property
     def query_cnt(self) -> int:

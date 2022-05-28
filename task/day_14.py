@@ -58,7 +58,7 @@ from typing import Any, Callable
 
 from protocol.arp import Arp
 from protocol.dns import Dns
-from protocol.ip import Ip, Ipv4, Ipv6
+from protocol.ip import Ipv4, Ipv6
 from protocol.pcap import Pcap
 from protocol.udp import Udp
 from utils.debug import show_run_time
@@ -78,7 +78,7 @@ def main(
         arp_or_ip = packet.parse_payload()
         if isinstance(arp_or_ip, Arp):  # ARP
             arp_write(f"{packet.show()} {arp_or_ip.show()}\n")
-        elif isinstance(arp_or_ip, Ip):
+        elif isinstance(arp_or_ip, (Ipv4, Ipv6)):
             packet_str = packet.show()
             ip_str = arp_or_ip.show()
             ip_write(f"{packet_str} {ip_str}\n")
@@ -92,31 +92,32 @@ def main(
 
 
 if __name__ == "__main__":
-    pcap_n = "data_day_14.pcap"
-    with open(pcap_n) as f, mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ) as mm:
-        with open("arp.txt", "w") as arp_f, open("ip.txt", "w") as ip_f:
-            with open("udp.txt", "w") as udp_f, open("dns.txt", "w") as dns_f:
-                main(
-                    mm,
-                    arp_write=arp_f.write,
-                    ip_write=ip_f.write,
-                    udp_write=udp_f.write,
-                    dns_write=dns_f.write,
-                )
+    # pcap_n = "data_day_14.pcap"
+    # with open(pcap_n) as f, mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ) as mm:
+    #     with open("arp.txt", "w") as arp_f, open("ip.txt", "w") as ip_f:
+    #         with open("udp.txt", "w") as udp_f, open("dns.txt", "w") as dns_f:
+    #             main(
+    #                 mm,
+    #                 arp_write=arp_f.write,
+    #                 ip_write=ip_f.write,
+    #                 udp_write=udp_f.write,
+    #                 dns_write=dns_f.write,
+    #             )
 
     # 运行三次
-    # print("版本：用位置替换掉所有的join")
-    # for _ in range(3):
-    #     with open(pcap_n) as f, mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ) as mm:
-    #         with open("arp.txt", "w") as arp_f, open("ip.txt", "w") as ip_f:
-    #             with open("udp.txt", "w") as udp_f, open("dns.txt", "w") as dns_f:
-    #                 main(
-    #                     mm,
-    #                     arp_write=arp_f.write,
-    #                     ip_write=ip_f.write,
-    #                     udp_write=udp_f.write,
-    #                     dns_write=dns_f.write,
-    #                 )
+    print("版本：重写init")
+    pcap_n = "data_day_14.pcap"
+    for _ in range(3):
+        with open(pcap_n) as f, mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ) as mm:
+            with open("arp.txt", "w") as arp_f, open("ip.txt", "w") as ip_f:
+                with open("udp.txt", "w") as udp_f, open("dns.txt", "w") as dns_f:
+                    main(
+                        mm,
+                        arp_write=arp_f.write,
+                        ip_write=ip_f.write,
+                        udp_write=udp_f.write,
+                        dns_write=dns_f.write,
+                    )
 
     # 用 12 天的 pcap 文件生成一个 1G 的数据
     # pcap_1 = "data_day_12.pcap"
@@ -129,13 +130,13 @@ if __name__ == "__main__":
     #         f2.write(content)
 
 # 结果
-# 版本：改掉join
-# 函数 main 开始：2022-05-28 17:04:27.138889
-# 函数 main 结束：2022-05-28 17:04:56.403130
-# 函数 main 耗时：29.264 秒
-# 函数 main 开始：2022-05-28 17:04:56.466258
-# 函数 main 结束：2022-05-28 17:05:25.611397
-# 函数 main 耗时：29.145 秒
-# 函数 main 开始：2022-05-28 17:05:25.665496
-# 函数 main 结束：2022-05-28 17:05:54.877449
-# 函数 main 耗时：29.212 秒
+# 版本：重写init
+# 函数 main 开始：2022-05-28 19:09:59.216218
+# 函数 main 结束：2022-05-28 19:10:24.368525
+# 函数 main 耗时：25.152 秒
+# 函数 main 开始：2022-05-28 19:10:24.439816
+# 函数 main 结束：2022-05-28 19:10:49.471746
+# 函数 main 耗时：25.032 秒
+# 函数 main 开始：2022-05-28 19:10:49.534413
+# 函数 main 结束：2022-05-28 19:11:14.421063
+# 函数 main 耗时：24.887 秒
