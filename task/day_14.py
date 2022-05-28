@@ -58,7 +58,7 @@ from typing import Any, Callable
 
 from protocol.arp import Arp
 from protocol.dns import Dns
-from protocol.ip import Ip
+from protocol.ip import Ip, Ipv4, Ipv6
 from protocol.pcap import Pcap
 from protocol.udp import Udp
 from utils.debug import show_run_time
@@ -107,7 +107,8 @@ if __name__ == "__main__":
 
     # 用 12 天的 pcap 文件生成一个 1G 的数据
     # pcap_1 = "data_day_12.pcap"
-    # with open(pcap_1, "rb") as f1, open(pcap_n, "wb") as f2:
+    # pcap_2 = "data_day_14.pcap"
+    # with open(pcap_1, "rb") as f1, open(pcap_2, "wb") as f2:
     #     f2.write(f1.read())
     #     f1.seek(24)
     #     content = f1.read()
@@ -115,10 +116,13 @@ if __name__ == "__main__":
     #         f2.write(content)
 
 # 结果
-# 函数 main 开始：2022-05-28 12:50:55.856739
-# 函数 main 结束：2022-05-28 12:51:47.154481
-# 函数 main 耗时：51.298 秒
-# 去掉item功能
-#   32.973 秒
-#   32.712 秒
-#   32.592 秒
+# 版本：去掉item功能
+# 函数 main 开始：2022-05-28 15:28:03.079932
+# 函数 main 结束：2022-05-28 15:28:36.052995
+# 函数 main 耗时：32.973 秒
+# 函数 main 开始：2022-05-28 15:28:36.130250
+# 函数 main 结束：2022-05-28 15:29:08.842489
+# 函数 main 耗时：32.712 秒
+# 函数 main 开始：2022-05-28 15:29:08.903490
+# 函数 main 结束：2022-05-28 15:29:41.495869
+# 函数 main 耗时：32.592 秒
