@@ -1,4 +1,5 @@
 """packet capture"""
+import mmap
 import struct
 from datetime import datetime
 from typing import Iterator, Union
@@ -21,20 +22,23 @@ class Pcap(Protocol):
         b"\x4d\x3c\xb2\xa1": ("<", 9),  # 小端，纳秒 9 位精度
     }
 
-    def __init__(self, total_len: int, **kwargs):
+    def __init__(self, data: Union[bytes, mmap.mmap], total_len: int):
         """
         :param total_len: 总长度，单位字节
         """
-        super().__init__(**kwargs)
+        super().__init__(data=data, offset=0)
         self.total_len = total_len
         # 二进制解析标识，时间精度
-        self.unpack_tag, self.accuracy = self.MAGIC_2_UNPACK_ACCURACY[self[:4]]
+        self.unpack_tag, self.accuracy = self.MAGIC_2_UNPACK_ACCURACY[self.data[:4]]
 
     def iterate_packet(self) -> Iterator["Packet"]:
         index = self.HEADER_LEN
         while index < self.total_len:
             packet = Packet(
-                self.unpack_tag, self.accuracy, **self.gen_getitem_kw(index)
+                self.unpack_tag,
+                self.accuracy,
+                data=self.data,
+                offset=index,
             )
             yield packet
             index += packet.total_len
@@ -61,7 +65,9 @@ class Packet(Protocol):
         """
         super().__init__(**kwargs)
         self.accuracy = accuracy
-        time_stamp, _, self.cap_len = struct.unpack(unpack_tag + "LLL", self[:12])
+        time_stamp, _, self.cap_len = struct.unpack(
+            unpack_tag + "LLL", self.data[self.offset : self.offset + 12]
+        )
         self.time = datetime.fromtimestamp(time_stamp)  # 没有微秒和纳秒的时间
 
     @property
@@ -70,18 +76,20 @@ class Packet(Protocol):
 
     @property
     def destination_mac(self) -> bytes:
-        return self[16:22]
+        return self.data[self.offset + 16 : self.offset + 22]
 
     @property
     def source_mac(self) -> bytes:
-        return self[22:28]
+        return self.data[self.offset + 22 : self.offset + 28]
 
     def parse_payload(self) -> _UP_TYPE:
-        if (tp := self[28:30]) <= b"\x05\xDC":  # 1500 及以下，IEEE 802.3
+        if (
+            tp := self.data[self.offset + 28 : self.offset + 30]
+        ) <= b"\x05\xDC":  # 1500 及以下，IEEE 802.3
             cls = Ieee802_3
         else:
             cls = self.TYPE_MAP[tp]
-        return cls(**self.gen_getitem_kw(self.HEADER_LEN + 14))
+        return cls(data=self.data, offset=self.offset + self.HEADER_LEN + 14)
 
     def show(self) -> str:
         return (

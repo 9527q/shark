@@ -72,7 +72,7 @@ def main(
     udp_write: Callable[[str], Any],
     dns_write: Callable[[str], Any],
 ):
-    pcap = Pcap(item_api=pcap_mm, total_len=pcap_mm.size())
+    pcap = Pcap(data=pcap_mm, total_len=pcap_mm.size())
 
     for packet in pcap.iterate_packet():
         arp_or_ip = packet.parse_payload()
@@ -118,11 +118,7 @@ if __name__ == "__main__":
 # 函数 main 开始：2022-05-28 12:50:55.856739
 # 函数 main 结束：2022-05-28 12:51:47.154481
 # 函数 main 耗时：51.298 秒
-# item功能放到基类里
-#   40.864 秒
-#   40.600 秒
-#   40.648 秒
-# packet数据加载到内存中
-#   40.439 秒
-#   40.276 秒
-#   40.211 秒
+# 去掉item功能
+#   32.973 秒
+#   32.712 秒
+#   32.592 秒

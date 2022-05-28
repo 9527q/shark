@@ -11,23 +11,30 @@ class Arp(Protocol):
 
     @property
     def type(self) -> int:  # 1 请求，2 应答
-        return bytes2int(self[6:8])
+        return bytes2int(self.data[self.offset + 6 : self.offset + 8])
 
     @cached_property
     def mac_len(self) -> int:  # 单位字节
-        return self[4]
+        return self.data[self.offset + 4]
 
     @cached_property
     def ip_len(self) -> int:  # 单位字节
-        return self[5]
+        return self.data[self.offset + 5]
 
     @property
     def source_ip(self) -> bytes:
-        return self[8 + self.mac_len : 8 + self.mac_len + self.ip_len]
+        return self.data[
+            self.offset
+            + 8
+            + self.mac_len : self.offset
+            + 8
+            + self.mac_len
+            + self.ip_len
+        ]
 
     @property
     def source_mac(self) -> bytes:
-        return self[8 : 8 + self.mac_len]
+        return self.data[self.offset + 8 : self.offset + 8 + self.mac_len]
 
     @property
     def destination_mac(self) -> bytes:
@@ -35,8 +42,13 @@ class Arp(Protocol):
 
     @property
     def destination_ip(self) -> bytes:
-        return self[
-            8 + 2 * self.mac_len + self.ip_len : 8 + 2 * (self.mac_len + self.ip_len)
+        return self.data[
+            self.offset
+            + 8
+            + 2 * self.mac_len
+            + self.ip_len : self.offset
+            + 8
+            + 2 * (self.mac_len + self.ip_len)
         ]
 
     def parse_payload(self):

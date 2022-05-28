@@ -20,7 +20,7 @@ class Tcp(Protocol):
 
     def parse_payload(self):
         if self.source_port == 53 or self.destination_port == 53:
-            return Dns(**self.gen_getitem_kw(self.HEADER_LEN))
+            return Dns(data=self.data, offset=self.offset + self.HEADER_LEN)
         return super().parse_payload()
 
     def show(self, tab_cnt=0):

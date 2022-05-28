@@ -33,7 +33,7 @@ class Ipv4(Ip):
 
     @property
     def HEADER_LEN(self) -> int:  # 首部长度，单位字节
-        return (self[0] & 0b1111) * 4
+        return (self.data[self.offset] & 0b1111) * 4
 
     @property
     def id(self) -> bytes:  # 标识
@@ -45,23 +45,23 @@ class Ipv4(Ip):
 
     @property
     def flags(self) -> str:  # 分片标识
-        return f"{self[6] >> 5:03b}"
+        return f"{self.data[self.offset+6] >> 5:03b}"
 
     @property
     def ttl(self) -> int:
-        return self[8]
+        return self.data[self.offset + 8]
 
     @property
     def source_ip(self) -> bytes:
-        return self[12:16]
+        return self.data[self.offset + 12 : self.offset + 16]
 
     @property
     def destination_ip(self) -> bytes:
-        return self[16:20]
+        return self.data[self.offset + 16 : self.offset + 20]
 
     def parse_payload(self) -> _UP_TYPE:
-        cls = self.TYPE_MAP[self[9]]
-        return cls(**self.gen_getitem_kw(self.HEADER_LEN))
+        cls = self.TYPE_MAP[self.data[self.offset + 9]]
+        return cls(data=self.data, offset=self.offset + self.HEADER_LEN)
 
 
 class Ipv6(Ip):
@@ -70,12 +70,12 @@ class Ipv6(Ip):
 
     @property
     def source_ip(self) -> bytes:
-        return self[8:24]
+        return self.data[self.offset + 8 : self.offset + 24]
 
     @property
     def destination_ip(self) -> bytes:
-        return self[24:40]
+        return self.data[self.offset + 24 : self.offset + 40]
 
     def parse_payload(self) -> _UP_TYPE:
-        cls = self.TYPE_MAP[self[6]]
-        return cls(**self.gen_getitem_kw(self.HEADER_LEN))
+        cls = self.TYPE_MAP[self.data[self.offset + 6]]
+        return cls(data=self.data, offset=self.offset + self.HEADER_LEN)

@@ -7,8 +7,6 @@
 - 底层协议可以 import 上层协议
 - 底层协议到上层协议的对应、转换、配置等，一律放在底层协议本身及其 parse_payload 中
 """
-from typing import Union
-
 from utils.classes import classproperty
 
 
@@ -20,28 +18,15 @@ class Protocol:
     HEADER_LEN = 0  # 首部长度，单位字节
 
     def parse_payload(self):  # 解析载荷
-        return type("未实现", (Protocol,), {})(**self.gen_getitem_kw(self.HEADER_LEN))
-
-    def gen_getitem_kw(self, offset=0):
-        """得到 Getitem 类所需要的关键字参数"""
-        return {
-            "item_api": self.item_api,
-            "item_api_offset": self.item_api_offset + offset,
-        }
+        return type("未实现", (Protocol,), {})(
+            data=self.data, offset=self.offset + self.HEADER_LEN
+        )
 
     def __init__(
         self,
         *,
-        item_api: Union[bytes, str, list, tuple],
-        item_api_offset: int = 0,
+        data: bytes,
+        offset: int = 0,
     ):
-        self.item_api = item_api
-        self.item_api_offset = item_api_offset
-
-    def __getitem__(self, item):
-        if isinstance(item, slice):
-            if (stop := item.stop) is not None:
-                stop += self.item_api_offset
-            return self.item_api[self.item_api_offset + (item.start or 0) : stop]
-        else:
-            return self.item_api[self.item_api_offset + item]
+        self.data = data
+        self.offset = offset

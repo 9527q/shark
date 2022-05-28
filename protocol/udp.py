@@ -10,11 +10,11 @@ class Udp(Protocol):
 
     @property
     def source_port(self) -> int:
-        return bytes2int(self[:2])
+        return bytes2int(self.data[self.offset : self.offset + 2])
 
     @property
     def destination_port(self) -> int:
-        return bytes2int(self[2:4])
+        return bytes2int(self.data[self.offset + 2 : self.offset + 4])
 
     @property
     def total_len(self) -> int:  # 总长度，单位字节
@@ -22,7 +22,7 @@ class Udp(Protocol):
 
     def parse_payload(self) -> Dns:
         if self.source_port == 53 or self.destination_port == 53:
-            return Dns(**self.gen_getitem_kw(self.HEADER_LEN))
+            return Dns(data=self.data, offset=self.offset + self.HEADER_LEN)
         return super().parse_payload()
 
     def show(self):
