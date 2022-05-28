@@ -31,10 +31,9 @@ class Pcap:
         index = self.HEADER_LEN
         while index < self.total_len:
             packet = Packet(
+                self.data,
+                index,
                 self.unpack_tag,
-                self.accuracy,
-                data=self.data,
-                offset=index,
             )
             yield packet
             index += packet.total_len
@@ -54,14 +53,13 @@ TYPE_MAP = {
 class Packet:
     HEADER_LEN = 16  # header 长度
 
-    def __init__(self, unpack_tag: str, accuracy: int, data, offset):
+    def __init__(self, data, offset, unpack_tag: str):
         """
         :param unpack_tag: 二进制解码标识（@=<>!）
         :param accuracy: 时间精度
         """
         self.data = data
         self.offset = offset
-        self.accuracy = accuracy
         self.time_stamp, _, self.cap_len = struct.unpack(
             unpack_tag + "LLL", self.data[self.offset : self.offset + 12]
         )
@@ -87,8 +85,9 @@ class Packet:
             return cls(data=self.data, offset=self.offset + 30)
 
     def show(self) -> str:
-        return (
-            f"[{self.time}] {self.cap_len}Bytes"
-            f" {mac2str(self.source_mac)}"
-            f" {mac2str(self.destination_mac)}"
+        return "[%s] %sBytes %s %s".format(
+            self.time,
+            self.cap_len,
+            mac2str(self.source_mac),
+            mac2str(self.destination_mac),
         )

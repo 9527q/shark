@@ -27,4 +27,4 @@ class Udp:
             return Dns(data=self.data, offset=self.offset + self.HEADER_LEN)
 
     def show(self):
-        return f"{self.source_port} {self.destination_port}"
+        return "%s %s".format(self.source_port, self.destination_port)

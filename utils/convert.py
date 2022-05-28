@@ -5,36 +5,42 @@ def mac2str(mac: bytes, /) -> str:
     return mac.hex("-").upper()
 
 
+def ipv42str(ipv4: bytes, /) -> str:
+    return "%s.%s.%s.%s".format(*ipv4)
+
+
+def ipv62str(ipv6: bytes, /) -> str:
+    res = []
+    # 先找出里面连续长度最长的 0
+    is_new, zero_cnt, zero_pos = True, 0, None
+    max_zero_cnt, max_zero_pos = 0, None
+    for i in range(0, 16, 2):
+        bytes2 = ipv6[i : i + 2]
+        if bytes2 == b"\x00\x00":
+            if is_new:
+                zero_pos = i
+                is_new = False
+            zero_cnt += 1
+            if zero_cnt > max_zero_cnt:
+                max_zero_cnt, max_zero_pos = zero_cnt, zero_pos
+        elif is_new is False:
+            is_new, zero_cnt, zero_pos = True, 0, None
+        res.append(f"{bytes2int(bytes2):X}")
+    # 找出 0 后将其删掉
+    if max_zero_pos is not None:
+        max_zero_pos //= 2
+        res = res[:max_zero_pos] + [""] + res[max_zero_pos + max_zero_cnt :]
+        if max_zero_pos + max_zero_cnt == 8:
+            res += [""]
+    if max_zero_pos == 0:
+        res = [""] + res
+    return ":".join(res)
+
+
 def ip2str(ip: bytes, /) -> str:
-    """IP 地址转 str，如果输入是 IPv6 的话使用简写输出"""
     if len(ip) == 4:
-        return f"{ip[0]}.{ip[1]}.{ip[2]}.{ip[3]}"
-    else:
-        res = []
-        # 先找出里面连续长度最长的 0
-        is_new, zero_cnt, zero_pos = True, 0, None
-        max_zero_cnt, max_zero_pos = 0, None
-        for i in range(0, 16, 2):
-            bytes2 = ip[i : i + 2]
-            if bytes2 == b"\x00\x00":
-                if is_new:
-                    zero_pos = i
-                    is_new = False
-                zero_cnt += 1
-                if zero_cnt > max_zero_cnt:
-                    max_zero_cnt, max_zero_pos = zero_cnt, zero_pos
-            elif is_new is False:
-                is_new, zero_cnt, zero_pos = True, 0, None
-            res.append(f"{bytes2int(bytes2):X}")
-        # 找出 0 后将其删掉
-        if max_zero_pos is not None:
-            max_zero_pos //= 2
-            res = res[:max_zero_pos] + [""] + res[max_zero_pos + max_zero_cnt :]
-            if max_zero_pos + max_zero_cnt == 8:
-                res += [""]
-        if max_zero_pos == 0:
-            res = [""] + res
-        return ":".join(res)
+        return ipv42str(ip)
+    return ipv62str(ip)
 
 
 def bytes2int(bytes_data: bytes, byteorder="big") -> int:

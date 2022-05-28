@@ -58,14 +58,27 @@ from typing import Any, Callable
 
 from protocol.arp import Arp
 from protocol.dns import Dns
-from protocol.ip import Ipv4, Ipv6
+from protocol.ip import Ipv4
 from protocol.pcap import Pcap
 from protocol.udp import Udp
+from utils.convert import ipv42str, mac2str
 from utils.debug import show_run_time
 
 
+def make_1g_file():
+    """用 12 天的 pcap 文件生成一个 1G 的数据"""
+    pcap_1 = "data_day_12.pcap"
+    pcap_2 = "data_day_14.pcap"
+    with open(pcap_1, "rb") as f1, open(pcap_2, "wb") as f2:
+        f2.write(f1.read())
+        f1.seek(24)
+        content = f1.read()
+        for i in range(2000):
+            f2.write(content)
+
+
 @show_run_time
-def main(
+def parse_pcap(
     pcap_mm: mmap.mmap,
     arp_write: Callable[[str], Any],
     ip_write: Callable[[str], Any],
@@ -74,69 +87,77 @@ def main(
 ):
     pcap = Pcap(data=pcap_mm, total_len=pcap_mm.size())
 
-    for packet in pcap.iterate_packet():
-        arp_or_ip = packet.parse_payload()
-        if isinstance(arp_or_ip, Arp):  # ARP
-            arp_write(f"{packet.show()} {arp_or_ip.show()}\n")
-        elif isinstance(arp_or_ip, (Ipv4, Ipv6)):
-            packet_str = packet.show()
-            ip_str = arp_or_ip.show()
-            ip_write(f"{packet_str} {ip_str}\n")
+    for pkt in pcap.iterate_packet():
+        arp_or_ip = pkt.parse_payload()
+
+        if isinstance(arp_or_ip, Arp):
+            arp_write(
+                "[%s] %sBytes %s %s %s\n".format(
+                    pkt.time,
+                    pkt.cap_len,
+                    mac2str(pkt.source_mac),
+                    mac2str(pkt.destination_mac),
+                    arp_or_ip.show(),
+                )
+            )
+        elif isinstance(arp_or_ip, Ipv4):
+            ip_str = "[%s] %sBytes %s %s %s %s %s\n".format(
+                pkt.time,
+                pkt.cap_len,
+                mac2str(pkt.source_mac),
+                mac2str(pkt.destination_mac),
+                arp_or_ip.TYPE_NAME,
+                ipv42str(arp_or_ip.source_ip),
+                ipv42str(arp_or_ip.destination_ip),
+            )
+            ip_write(ip_str)
+
             udp = arp_or_ip.parse_payload()
             if isinstance(udp, Udp):  # UDP
-                udp_show = f"{packet_str} {arp_or_ip.TYPE_NAME} {ip_str} {udp.show()}\n"
-                udp_write(udp_show)
+                udp_str = "%s %s %s\n".format(
+                    ip_str, udp.source_port, udp.destination_port
+                )
+                udp_write(udp_str)
+
                 dns = udp.parse_payload()
                 if isinstance(dns, Dns):  # DNS
-                    dns_write(f"{udp_show[:-1]} {dns.show()}\n")
+                    dns_write("%s %s\n".format(udp_str[:-1], dns.show()))
+
+
+def main():
+    pcap_n = "data_day_14.pcap"
+    with open(pcap_n) as f, mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ) as mm:
+        with open("arp.txt", "w") as arp_f, open("ip.txt", "w") as ip_f:
+            with open("udp.txt", "w") as udp_f, open("dns.txt", "w") as dns_f:
+                parse_pcap(
+                    mm,
+                    arp_write=arp_f.write,
+                    ip_write=ip_f.write,
+                    udp_write=udp_f.write,
+                    dns_write=dns_f.write,
+                )
+
+
+def run_main_times(times: int):
+    for i in range(times):
+        print(f"第 {i+1} 次")
+        main()
 
 
 if __name__ == "__main__":
-    # pcap_n = "data_day_14.pcap"
-    # with open(pcap_n) as f, mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ) as mm:
-    #     with open("arp.txt", "w") as arp_f, open("ip.txt", "w") as ip_f:
-    #         with open("udp.txt", "w") as udp_f, open("dns.txt", "w") as dns_f:
-    #             main(
-    #                 mm,
-    #                 arp_write=arp_f.write,
-    #                 ip_write=ip_f.write,
-    #                 udp_write=udp_f.write,
-    #                 dns_write=dns_f.write,
-    #             )
-
-    # 运行三次
-    print("版本：重写init")
-    pcap_n = "data_day_14.pcap"
-    for _ in range(3):
-        with open(pcap_n) as f, mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ) as mm:
-            with open("arp.txt", "w") as arp_f, open("ip.txt", "w") as ip_f:
-                with open("udp.txt", "w") as udp_f, open("dns.txt", "w") as dns_f:
-                    main(
-                        mm,
-                        arp_write=arp_f.write,
-                        ip_write=ip_f.write,
-                        udp_write=udp_f.write,
-                        dns_write=dns_f.write,
-                    )
-
-    # 用 12 天的 pcap 文件生成一个 1G 的数据
-    # pcap_1 = "data_day_12.pcap"
-    # pcap_2 = "data_day_14.pcap"
-    # with open(pcap_1, "rb") as f1, open(pcap_2, "wb") as f2:
-    #     f2.write(f1.read())
-    #     f1.seek(24)
-    #     content = f1.read()
-    #     for i in range(2000):
-    #         f2.write(content)
+    main()  # python -m cProfile -s cumulative  day_14.py
+    # run_main_times(3)
 
 # 结果
-# 版本：重写init
-# 函数 main 开始：2022-05-28 19:09:59.216218
-# 函数 main 结束：2022-05-28 19:10:24.368525
-# 函数 main 耗时：25.152 秒
-# 函数 main 开始：2022-05-28 19:10:24.439816
-# 函数 main 结束：2022-05-28 19:10:49.471746
-# 函数 main 耗时：25.032 秒
-# 函数 main 开始：2022-05-28 19:10:49.534413
-# 函数 main 结束：2022-05-28 19:11:14.421063
-# 函数 main 耗时：24.887 秒
+# 第 1 次
+# 函数 parse_pcap 开始：2022-05-28 21:05:40.209653
+# 函数 parse_pcap 结束：2022-05-28 21:05:57.416046
+# 函数 parse_pcap 耗时：17.206 秒
+# 第 2 次
+# 函数 parse_pcap 开始：2022-05-28 21:05:57.465528
+# 函数 parse_pcap 结束：2022-05-28 21:06:14.058051
+# 函数 parse_pcap 耗时：16.593 秒
+# 第 3 次
+# 函数 parse_pcap 开始：2022-05-28 21:06:14.110075
+# 函数 parse_pcap 结束：2022-05-28 21:06:30.192104
+# 函数 parse_pcap 耗时：16.082 秒

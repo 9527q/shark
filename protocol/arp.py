@@ -1,20 +1,15 @@
-from utils.convert import bytes2int, ip2str, mac2str
+from utils.convert import bytes2int, ip2str
 
 
 class Arp:
     MAP = {}  # 映射表，同一线程下自动存储，使用类属性调用之
-    TYPE_ASK = 1  # 请求
-    TYPE_RES = 2  # 应答
 
     def __init__(self, data: bytes, offset: int):
         self.data = data
         self.offset = offset
         self.mac_len = self.data[self.offset + 4]
         self.ip_len = self.data[self.offset + 5]
-
-    @property
-    def type(self) -> int:  # 1 请求，2 应答
-        return bytes2int(self.data[self.offset + 6 : self.offset + 8])
+        self.type = bytes2int(self.data[self.offset + 6 : self.offset + 8])  # 1 请求，2 应答
 
     @property
     def source_ip(self) -> bytes:
@@ -48,11 +43,11 @@ class Arp:
 
     def parse_payload(self):
         Arp.MAP[self.source_ip] = self.source_mac
-        if self.type == self.TYPE_RES:
+        if self.type == 2:
             Arp.MAP[self.destination_ip] = self.destination_mac
 
     def show(self) -> str:
-        if self.type == self.TYPE_ASK:
-            return f"查询 {ip2str(self.destination_ip)} 的MAC地址"
+        if self.type == 1:
+            return "查询 %s 的MAC地址".format(ip2str(self.destination_ip))
         else:
-            return f"响应 {ip2str(self.source_ip)} 的MAC地址 {mac2str(self.source_mac)}"
+            return "响应 %s 的MAC地址".format(ip2str(self.source_ip))

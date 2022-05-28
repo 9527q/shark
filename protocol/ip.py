@@ -2,7 +2,7 @@ from typing import Union
 
 from protocol.tcp import Tcp
 from protocol.udp import Udp
-from utils.convert import bytes2int, ip2str
+from utils.convert import bytes2int, ipv42str, ipv62str
 
 TYPE_MAP = {
     6: Tcp,
@@ -30,10 +30,6 @@ class Ipv4:
         return bytes2int(self[6:8]) & 0b1111111111111
 
     @property
-    def flags(self) -> str:  # 分片标识
-        return f"{self.data[self.offset+6] >> 5:03b}"
-
-    @property
     def ttl(self) -> int:
         return self.data[self.offset + 8]
 
@@ -50,7 +46,7 @@ class Ipv4:
             return cls(data=self.data, offset=self.offset + self.HEADER_LEN)
 
     def show(self) -> str:
-        return f"{ip2str(self.source_ip)} {ip2str(self.destination_ip)}"
+        return "%s %s".format(ipv42str(self.source_ip), ipv42str(self.destination_ip))
 
 
 class Ipv6:
@@ -74,4 +70,4 @@ class Ipv6:
             return cls(data=self.data, offset=self.offset + self.HEADER_LEN)
 
     def show(self) -> str:
-        return f"{ip2str(self.source_ip)} {ip2str(self.destination_ip)}"
+        return "%s %s".format(ipv62str(self.source_ip), ipv62str(self.destination_ip))

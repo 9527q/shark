@@ -24,4 +24,4 @@ class Tcp:
             return Dns(data=self.data, offset=self.offset + self.HEADER_LEN)
 
     def show(self):
-        return f"[TCP] {self.source_port}  ->  {self.destination_port}"
+        return "[TCP] %s  ->  %s".format(self.source_port, self.destination_port)

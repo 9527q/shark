@@ -98,7 +98,7 @@ class Dns:
 
     def show(self):
         if self.qr == 0:
-            return f"DNS请求 查询域名 {self.first_query_domain} 的地址"
+            return "DNS请求 查询域名 %s 的地址".format(self.first_query_domain)
         else:
             domain, addrs = None, []
             for cname, addr in self.parse_answers():
@@ -106,4 +106,4 @@ class Dns:
                     domain = cname
                 if isinstance(addr, bytes):
                     addrs.append(ip2str(addr))
-            return f"DNS响应 域名 {domain} 的地址是 {'、'.join(addrs)}"
+            return "DNS响应 域名 %s 的地址是 %s".format(domain, "、".join(addrs))
