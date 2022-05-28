@@ -54,6 +54,7 @@ import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import mmap
+from typing import Any, Callable
 
 from protocol.arp import Arp
 from protocol.dns import Dns
@@ -64,28 +65,30 @@ from utils.debug import show_run_time
 
 
 @show_run_time
-def main(pcap_mm: mmap.mmap, arp_f, ip_f, udp_f, dns_f):
+def main(
+    pcap_mm: mmap.mmap,
+    arp_write: Callable[[str], Any],
+    ip_write: Callable[[str], Any],
+    udp_write: Callable[[str], Any],
+    dns_write: Callable[[str], Any],
+):
     pcap = Pcap(item_api=pcap_mm, total_len=pcap_mm.size())
 
-    for i, packet in enumerate(pcap.iterate_packet(), start=1):
+    for packet in pcap.iterate_packet():
         arp_or_ip = packet.parse_payload()
         if isinstance(arp_or_ip, Arp):  # ARP
-            arp_f.write(f"{packet.show()} {arp_or_ip.show()}\n")
+            arp_write(f"{packet.show()} {arp_or_ip.show()}\n")
         elif isinstance(arp_or_ip, Ip):
-            packet_show = packet.show()
-            ip_show = arp_or_ip.show()
-            ip_f.write(f"{packet_show} {ip_show}\n")
+            packet_str = packet.show()
+            ip_str = arp_or_ip.show()
+            ip_write(f"{packet_str} {ip_str}\n")
             udp = arp_or_ip.parse_payload()
             if isinstance(udp, Udp):  # UDP
-                udp_show = udp.show()
-                udp_f.write(
-                    f"{packet_show} {arp_or_ip.TYPE_NAME} {ip_show} {udp_show}\n"
-                )
+                udp_show = f"{packet_str} {arp_or_ip.TYPE_NAME} {ip_str} {udp.show()}\n"
+                udp_write(udp_show)
                 dns = udp.parse_payload()
                 if isinstance(dns, Dns):  # DNS
-                    dns_f.write(
-                        f"{packet_show} {arp_or_ip.TYPE_NAME} {ip_show} {udp_show} {dns.show()}\n"
-                    )
+                    dns_write(f"{udp_show[:-1]} {dns.show()}\n")
 
 
 if __name__ == "__main__":
@@ -94,7 +97,13 @@ if __name__ == "__main__":
         with open(pcap_n) as f, mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ) as mm:
             with open("arp.txt", "w") as arp_f, open("ip.txt", "w") as ip_f:
                 with open("udp.txt", "w") as udp_f, open("dns.txt", "w") as dns_f:
-                    main(mm, arp_w=arp_f, ip_f=ip_f, udp_f=udp_f, dns_f=dns_f)
+                    main(
+                        mm,
+                        arp_write=arp_f.write,
+                        ip_write=ip_f.write,
+                        udp_write=udp_f.write,
+                        dns_write=dns_f.write,
+                    )
 
     # 用 12 天的 pcap 文件生成一个 1G 的数据
     # pcap_1 = "data_day_12.pcap"
@@ -109,7 +118,7 @@ if __name__ == "__main__":
 # 函数 main 开始：2022-05-28 12:50:55.856739
 # 函数 main 结束：2022-05-28 12:51:47.154481
 # 函数 main 耗时：51.298 秒
-# write f-string
-#   42.400 秒
-#   42.377 秒
-#   42.039 秒
+# 直接传入 write
+#   41.477 秒
+#   41.268 秒
+#   41.116 秒
