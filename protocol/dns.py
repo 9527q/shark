@@ -100,18 +100,14 @@ class Dns(Protocol):
                 cname = data
             yield domain, data
 
-    def show(self, tab_cnt=0):
-        t1, t2 = "\t" * tab_cnt, "\n" + "\t" * (tab_cnt + 3)
+    def show(self):
         if self.qr == 0:
-            head = "[DNS]查询"
-            data = self.query_domains
+            return f"DNS请求 查询域名 {'，'.join(self.query_domains)} 的地址"
         else:
-            head = "[DNS]响应"
-            answers = self.parse_answers()
-            max_domain_len = max(len(d) for d, _ in answers)
-            data = (
-                f"{d:{max_domain_len}}"
-                f"  ->  {a if isinstance(a, str) else ip2str(a)}"
-                for d, a in answers
-            )
-        return f"{t1}{head}\t{t2.join(data)}"
+            domain, addrs = None, []
+            for cname, addr in self.parse_answers():
+                if domain is None:
+                    domain = cname
+                if isinstance(addr, bytes):
+                    addrs.append(ip2str(addr))
+            return f"DNS响应 域名 {domain} 的地址是 {'、'.join(addrs)}"

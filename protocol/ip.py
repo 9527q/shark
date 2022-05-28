@@ -24,12 +24,8 @@ class Ip(Protocol):
     def parse_payload(self) -> _UP_TYPE:
         """解析载荷"""
 
-    def show(self, tab_cnt=0) -> str:
-        t = "\t" * tab_cnt
-        return (
-            f"{t}[{self.TYPE_NAME}] "
-            f"{ip2str(self.source_ip)}  ->  {ip2str(self.destination_ip)}"
-        )
+    def show(self) -> str:
+        return f"{ip2str(self.source_ip)} {ip2str(self.destination_ip)}"
 
 
 class Ipv4(Ip):
