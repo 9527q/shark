@@ -4,12 +4,13 @@ __pycache__/
 
 # web
 *.pcap
-
-# mac
-.DS_Store
-
-# day_14 task result
 arp.txt
 ip.txt
 udp.txt
 dns.txt
+
+# mac
+.DS_Store
+
+# project
+*.log

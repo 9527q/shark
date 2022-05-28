@@ -93,30 +93,30 @@ def main(
 
 if __name__ == "__main__":
     pcap_n = "data_day_14.pcap"
-    # with open(pcap_n) as f, mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ) as mm:
-    #     with open("arp.txt", "w") as arp_f, open("ip.txt", "w") as ip_f:
-    #         with open("udp.txt", "w") as udp_f, open("dns.txt", "w") as dns_f:
-    #             main(
-    #                 mm,
-    #                 arp_write=arp_f.write,
-    #                 ip_write=ip_f.write,
-    #                 udp_write=udp_f.write,
-    #                 dns_write=dns_f.write,
-    #             )
+    with open(pcap_n) as f, mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ) as mm:
+        with open("arp.txt", "w") as arp_f, open("ip.txt", "w") as ip_f:
+            with open("udp.txt", "w") as udp_f, open("dns.txt", "w") as dns_f:
+                main(
+                    mm,
+                    arp_write=arp_f.write,
+                    ip_write=ip_f.write,
+                    udp_write=udp_f.write,
+                    dns_write=dns_f.write,
+                )
 
     # 运行三次
-    print("版本：用位置替换掉所有的join")
-    for _ in range(3):
-        with open(pcap_n) as f, mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ) as mm:
-            with open("arp.txt", "w") as arp_f, open("ip.txt", "w") as ip_f:
-                with open("udp.txt", "w") as udp_f, open("dns.txt", "w") as dns_f:
-                    main(
-                        mm,
-                        arp_write=arp_f.write,
-                        ip_write=ip_f.write,
-                        udp_write=udp_f.write,
-                        dns_write=dns_f.write,
-                    )
+    # print("版本：用位置替换掉所有的join")
+    # for _ in range(3):
+    #     with open(pcap_n) as f, mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ) as mm:
+    #         with open("arp.txt", "w") as arp_f, open("ip.txt", "w") as ip_f:
+    #             with open("udp.txt", "w") as udp_f, open("dns.txt", "w") as dns_f:
+    #                 main(
+    #                     mm,
+    #                     arp_write=arp_f.write,
+    #                     ip_write=ip_f.write,
+    #                     udp_write=udp_f.write,
+    #                     dns_write=dns_f.write,
+    #                 )
 
     # 用 12 天的 pcap 文件生成一个 1G 的数据
     # pcap_1 = "data_day_12.pcap"
