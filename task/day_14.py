@@ -48,9 +48,9 @@
 （有对项目内其他模块的依赖，记录下版本，方便以后运行）
 """
 # 如果不是在 Pycharm 里，打开下面三行注释
-# import os
-# import sys
-# sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import os
+import sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import mmap
 
@@ -69,49 +69,57 @@ def main(pcap_mm: mmap.mmap, arp_f, ip_f, udp_f, dns_f):
     for i, packet in enumerate(pcap.iterate_packet(), start=1):
         arp_or_ip = packet.parse_payload()
         if isinstance(arp_or_ip, Arp):  # ARP
-            arp_f.writelines([packet.show(), " ", arp_or_ip.show(), "\n"])
+            # arp_f.write(packet.show() + " "+ arp_or_ip.show()+ "\n")
+            arp_f.write(f"{packet.show()} {arp_or_ip.show()}\n")
         elif isinstance(arp_or_ip, Ip):
             packet_show = packet.show()
             ip_show = arp_or_ip.show()
-            ip_f.writelines([packet_show, " ", ip_show, "\n"])
+            # ip_f.write(packet_show + " " + ip_show + "\n")
+            ip_f.write(f"{packet_show} {ip_show}\n")
             udp = arp_or_ip.parse_payload()
             if isinstance(udp, Udp):  # UDP
                 udp_show = udp.show()
-                udp_f.writelines(
-                    [
-                        packet_show,
-                        " ",
-                        arp_or_ip.TYPE_NAME,
-                        " ",
-                        ip_show,
-                        " ",
-                        udp_show,
-                        "\n",
-                    ]
+                # udp_f.write(
+                #         packet_show +
+                #         " "+
+                #         arp_or_ip.TYPE_NAME+
+                #         " "+
+                #         ip_show+
+                #         " "+
+                #         udp_show+
+                #         "\n"
+                # )
+                udp_f.write(
+                    f"{packet_show} {arp_or_ip.TYPE_NAME} {ip_show} {udp_show}\n"
                 )
                 dns = udp.parse_payload()
                 if isinstance(dns, Dns):  # DNS
-                    dns_f.writelines(
-                        [
-                            packet_show,
-                            " ",
-                            arp_or_ip.TYPE_NAME,
-                            " ",
-                            ip_show,
-                            " ",
-                            udp_show,
-                            " ",
-                            dns.show() + "\n",
-                        ]
+                    # dns_f.write(
+                    #         packet_show+
+                    #         " "+
+                    #         arp_or_ip.TYPE_NAME+
+                    #         " "+
+                    #         ip_show+
+                    #         " "+
+                    #         udp_show+
+                    #         " "+
+                    #         dns.show() + "\n"
+                    # )
+                    udp_f.write(
+                        f"{packet_show} {arp_or_ip.TYPE_NAME} {ip_show} {udp_show} {dns.show()}\n"
                     )
 
 
 if __name__ == "__main__":
     pcap_n = "data_day_14.pcap"
-    with open(pcap_n) as f, mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ) as mm:
+    for _ in range(3):
         with open("arp.txt", "w") as arp_f, open("ip.txt", "w") as ip_f:
             with open("udp.txt", "w") as udp_f, open("dns.txt", "w") as dns_f:
-                main(mm, arp_f=arp_f, ip_f=ip_f, udp_f=udp_f, dns_f=dns_f)
+                pass
+        with open(pcap_n) as f, mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ) as mm:
+            with open("arp.txt", "w") as arp_f, open("ip.txt", "w") as ip_f:
+                with open("udp.txt", "w") as udp_f, open("dns.txt", "w") as dns_f:
+                    main(mm, arp_f=arp_f, ip_f=ip_f, udp_f=udp_f, dns_f=dns_f)
 
     # 用 12 天的 pcap 文件生成一个 1G 的数据
     # pcap_1 = "data_day_12.pcap"
@@ -126,3 +134,15 @@ if __name__ == "__main__":
 # 函数 main 开始：2022-05-28 12:50:55.856739
 # 函数 main 结束：2022-05-28 12:51:47.154481
 # 函数 main 耗时：51.298 秒
+# write 一个加起来的
+#   49.147 秒
+#   48.786 秒
+#   48.867 秒
+# write f-string
+#   48.790 秒
+#   48.659 秒
+#   48.496 秒
+# 不使用payload
+#   41.787 秒
+#   42.071 秒
+#   41.914 秒

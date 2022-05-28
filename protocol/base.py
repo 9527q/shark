@@ -7,8 +7,6 @@
 - 底层协议可以 import 上层协议
 - 底层协议到上层协议的对应、转换、配置等，一律放在底层协议本身及其 parse_payload 中
 """
-from functools import cached_property
-
 from utils.classes import Getitem, classproperty
 
 
@@ -19,9 +17,5 @@ class Protocol(Getitem):
     TYPE_NAME = classproperty(lambda cls: cls.__name__.upper())
     HEADER_LEN = 0  # 首部长度，单位字节
 
-    @cached_property
-    def payload(self):  # 载荷
-        return Getitem(**self.gen_getitem_kw(self.HEADER_LEN))
-
     def parse_payload(self):  # 解析载荷
-        return type("未实现", (Protocol,), {})(**self.payload.gen_getitem_kw())
+        return type("未实现", (Protocol,), {})(**self.gen_getitem_kw(self.HEADER_LEN))

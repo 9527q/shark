@@ -70,14 +70,14 @@ class Packet(Protocol):
 
     @property
     def destination_mac(self) -> bytes:
-        return self.payload[:6]
+        return self[16:22]
 
     @property
     def source_mac(self) -> bytes:
-        return self.payload[6:12]
+        return self[22:28]
 
     def parse_payload(self) -> _UP_TYPE:
-        if (tp := self.payload[12:14]) <= b"\x05\xDC":  # 1500 及以下，IEEE 802.3
+        if (tp := self[28:30]) <= b"\x05\xDC":  # 1500 及以下，IEEE 802.3
             cls = Ieee802_3
         else:
             cls = self.TYPE_MAP[tp]
