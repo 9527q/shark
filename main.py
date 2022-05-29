@@ -53,7 +53,7 @@ def parse_pcap(
                 udp_write(udp_str)
 
                 # DNS
-                if source_port == 53 or source_port == 53:
+                if source_port == 53 or dest_port == 53:
                     dns = Dns(pcap_mm, udp_offset + 8)
                     dns_write(f"{udp_str[:-1]} {dns.show()}\n")
 
