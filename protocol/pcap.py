@@ -7,7 +7,7 @@ from typing import Iterator, Union
 
 from protocol.arp import Arp
 from protocol.ip import Ipv4, Ipv6
-from utils.convert import bytes2int, mac2str
+from utils.convert import mac2str
 
 TYPE_MAP = {b"\x08\x00": Ipv4, b"\x08\x06": Arp, b"\x86\xdd": Ipv6, b"\x88\xcc": "LLDP"}
 
