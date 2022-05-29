@@ -1,8 +1,9 @@
+import mmap
 from typing import Union
 
 from protocol.tcp import Tcp
 from protocol.udp import Udp
-from utils.convert import bytes2int, ipv42str, ipv62str
+from utils.convert import ipv42str, ipv62str
 
 TYPE_MAP = {
     6: Tcp,
@@ -13,21 +14,14 @@ TYPE_MAP = {
 class Ipv4:
     TYPE_NAME = "IPv4"
 
-    def __init__(self, data: bytes, offset: int):
+    def __init__(self, data: Union[bytes, mmap.mmap], offset: int):
         self.data = data
         self.offset = offset
+        self.header = data[offset : offset + 20]
 
     @property
     def HEADER_LEN(self) -> int:  # 首部长度，单位字节
-        return (self.data[self.offset] & 0b1111) * 4
-
-    @property
-    def id(self) -> bytes:  # 标识
-        return self[4:6]
-
-    @property
-    def fo(self) -> int:  # 片偏移
-        return bytes2int(self[6:8]) & 0b1111111111111
+        return (self.header[0] & 0b1111) * 4
 
     @property
     def ttl(self) -> int:
@@ -35,14 +29,14 @@ class Ipv4:
 
     @property
     def source_ip(self) -> bytes:
-        return self.data[self.offset + 12 : self.offset + 16]
+        return self.header[12:16]
 
     @property
     def destination_ip(self) -> bytes:
-        return self.data[self.offset + 16 : self.offset + 20]
+        return self.header[16:20]
 
     def parse_payload(self) -> Union[Udp, Tcp]:
-        if cls := TYPE_MAP.get(self.data[self.offset + 9]):
+        if cls := TYPE_MAP.get(self.header[9]):
             return cls(data=self.data, offset=self.offset + self.HEADER_LEN)
 
     def show(self) -> str:

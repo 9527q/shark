@@ -55,11 +55,13 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import mmap
 from datetime import datetime
+from struct import unpack
 from typing import Any, Callable
 
 from protocol.arp import Arp
+from protocol.defining import Lldp
 from protocol.dns import Dns
-from protocol.ip import Ipv4
+from protocol.ip import Ipv4, Ipv6
 from protocol.pcap import Pcap
 from protocol.udp import Udp
 from utils.convert import ipv42str, mac2str
@@ -78,6 +80,9 @@ def make_1g_file():
             f2.write(content)
 
 
+TYPE_MAP = {b"\x08\x00": Ipv4, b"\x08\x06": Arp, b"\x86\xdd": Ipv6, b"\x88\xcc": Lldp}
+
+
 @show_run_time
 def parse_pcap(
     pcap_mm: mmap.mmap,
@@ -86,23 +91,31 @@ def parse_pcap(
     udp_write: Callable[[str], Any],
     dns_write: Callable[[str], Any],
 ):
-    pcap = Pcap(data=pcap_mm, total_len=pcap_mm.size())
+    unpack_tag = Pcap.gen_unpack_tag(pcap_mm[:4]) + "L"
 
-    for ts, cap_len, source_mac, dest_mac, up_type in pcap.iterate_packet_v2(
-        up_types=(Arp, Ipv4)
-    ):
-        # for pkt in pcap.iterate_packet():
-        # if isinstance(up_type, Arp):
-        # up_type = pkt.parse_payload()
-        if up_type.__class__ == Arp:
+    index = 24
+    total_len = pcap_mm.size()
+    # up_types = {Arp, Ipv4}
+    # iee8023 = b"\x05\xdc"
+    while index < total_len:
+        header = pcap_mm[index : index + 30]
+        tp = header[28:30]
+        cap_len = unpack(unpack_tag, header[8:12])[0]
+
+        if tp == b"\x08\x06":
+            ts = unpack(unpack_tag, header[:4])[0]
+            dest_mac = header[16:22]
+            source_mac = header[22:28]
+            up_type = Arp(data=pcap_mm[index + 30 : index + 16 + cap_len])
             arp_write(
                 f"[{datetime.fromtimestamp(ts)}] {cap_len}Bytes {mac2str(source_mac)} {mac2str(dest_mac)} {up_type.show()}\n"
-                # f"[{pkt.time}] {pkt.cap_len}Bytes {mac2str(pkt.source_mac)} {mac2str(pkt.destination_mac)} {up_type.show()}\n"
             )
-        # elif isinstance(up_type, Ipv4):
-        elif up_type.__class__ == Ipv4:
+        elif tp == b"\x08\x00":
+            ts = unpack(unpack_tag, header[:4])[0]
+            dest_mac = header[16:22]
+            source_mac = header[22:28]
+            up_type = Ipv4(data=pcap_mm, offset=index + 30)
             ip_str = f"[{datetime.fromtimestamp(ts)}] {cap_len}Bytes {mac2str(source_mac)} {mac2str(dest_mac)} {up_type.TYPE_NAME} {ipv42str(up_type.source_ip)} {ipv42str(up_type.destination_ip)}"
-            # ip_str = f"[{pkt.time}] {pkt.cap_len}Bytes {mac2str(pkt.source_mac)} {mac2str(pkt.destination_mac)} {up_type.TYPE_NAME} {ipv42str(up_type.source_ip)} {ipv42str(up_type.destination_ip)}"
             ip_write(ip_str + "\n")
 
             udp = up_type.parse_payload()
@@ -113,6 +126,8 @@ def parse_pcap(
                 dns = udp.parse_payload()
                 if isinstance(dns, Dns):  # DNS
                     dns_write(f"{udp_str} {dns.show()}\n")
+
+        index += cap_len + 16
 
 
 def main():
@@ -136,19 +151,19 @@ def run_main_times(times: int):
 
 
 if __name__ == "__main__":
-    # main()  # python -m cProfile -s cumulative  day_14.py
-    run_main_times(3)
+    main()  # python -m cProfile -s cumulative  day_14.py
+    # run_main_times(3)
 
 # 结果
 # 第 1 次
-# 函数 parse_pcap 开始：2022-05-29 11:53:24.371089
-# 函数 parse_pcap 结束：2022-05-29 11:53:43.036589
-# 函数 parse_pcap 耗时：18.666 秒
+# 函数 parse_pcap 开始：2022-05-29 13:32:40.626058
+# 函数 parse_pcap 结束：2022-05-29 13:32:57.990937
+# 函数 parse_pcap 耗时：17.365 秒
 # 第 2 次
-# 函数 parse_pcap 开始：2022-05-29 11:53:43.123832
-# 函数 parse_pcap 结束：2022-05-29 11:54:01.737296
-# 函数 parse_pcap 耗时：18.613 秒
+# 函数 parse_pcap 开始：2022-05-29 13:32:58.054613
+# 函数 parse_pcap 结束：2022-05-29 13:33:15.410351
+# 函数 parse_pcap 耗时：17.356 秒
 # 第 3 次
-# 函数 parse_pcap 开始：2022-05-29 11:54:01.799089
-# 函数 parse_pcap 结束：2022-05-29 11:54:20.469343
-# 函数 parse_pcap 耗时：18.670 秒
+# 函数 parse_pcap 开始：2022-05-29 13:33:15.469210
+# 函数 parse_pcap 结束：2022-05-29 13:33:32.764531
+# 函数 parse_pcap 耗时：17.295 秒

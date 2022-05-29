@@ -69,6 +69,10 @@ class Pcap:
             ], data[index + 16 : index + 22], cls(data=data, offset=index + 30)
             index += cap_len + 16
 
+    @classmethod
+    def gen_unpack_tag(cls, magic):
+        return cls.MAGIC_2_UNPACK_ACCURACY[magic][0]
+
 
 TYPE_MAP2 = {
     b"\x08\x00": Ipv4,
