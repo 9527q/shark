@@ -88,7 +88,7 @@ def parse_pcap(
 ):
     pcap = Pcap(data=pcap_mm, total_len=pcap_mm.size())
 
-    for ts, cap_len, source_mac, dest_mac, up_type in pcap.iterate_packet2(
+    for ts, cap_len, source_mac, dest_mac, up_type in pcap.iterate_packet_v2(
         up_types=(Arp, Ipv4)
     ):
         # for pkt in pcap.iterate_packet():

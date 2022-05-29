@@ -42,7 +42,7 @@ class Pcap:
             yield packet
             index += packet.total_len
 
-    def iterate_packet2(self, up_types):
+    def iterate_packet_v2(self, up_types):
         """
         生成器，返回 时间戳、数据长度、源mac、目的mac、上层协议对象
         :param up_types: 想要的上层协议类型
