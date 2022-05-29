@@ -91,8 +91,6 @@ def parse_pcap(
     unpack_tag = Pcap.gen_unpack_tag(pcap_mm[:4]) + "L"
     index = 24
     total_len = pcap_mm.size()
-    IP = b"\x08\x00"
-    ARP = b"\x08\x06"
 
     while index < total_len:
         index_30 = index + 30
@@ -101,7 +99,7 @@ def parse_pcap(
         cap_len = unpack(unpack_tag, header[8:12])[0]
 
         # IPv4
-        if tp == IP:
+        if tp == b"\x08\x00":
             ts = unpack(unpack_tag, header[:4])[0]
             dest_mac = header[16:22]
             source_mac = header[22:28]
@@ -127,7 +125,7 @@ def parse_pcap(
                     dns_write(f"{udp_str[:-1]} {dns.show()}\n")
 
         # ARP
-        elif tp == ARP:
+        elif tp == b"\x08\x06":
             ts = unpack(unpack_tag, header[:4])[0]
             dest_mac = header[16:22]
             source_mac = header[22:28]
@@ -153,3 +151,8 @@ if __name__ == "__main__":
                     udp_write=udp_f.write,
                     dns_write=dns_f.write,
                 )
+
+# 结果
+# 函数 parse_pcap 开始：2022-05-29 22:33:24.297295
+# 函数 parse_pcap 结束：2022-05-29 22:33:37.823202
+# 函数 parse_pcap 耗时：13.526 秒
