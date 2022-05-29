@@ -1,12 +1,19 @@
 """类型转换相关"""
 
+MAC2STR = {}
+
 
 def mac2str(mac: bytes, /) -> str:
     return mac.hex("-").upper()
+    # if res := MAC2STR.get(mac):
+    #     return res
+    # res = mac.hex("-").upper()
+    # MAC2STR[mac] = res
+    # return res
 
 
 def ipv42str(ipv4: bytes, /) -> str:
-    return "%s.%s.%s.%s".format(*ipv4)
+    return f"{ipv4[0]}.{ipv4[1]}.{ipv4[2]}.{ipv4[3]}"
 
 
 def ipv62str(ipv6: bytes, /) -> str:

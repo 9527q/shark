@@ -54,6 +54,7 @@ import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import mmap
+from datetime import datetime
 from typing import Any, Callable
 
 from protocol.arp import Arp
@@ -87,41 +88,31 @@ def parse_pcap(
 ):
     pcap = Pcap(data=pcap_mm, total_len=pcap_mm.size())
 
+    # for ts, cap_len, source_mac, dest_mac, up_type in pcap.iterate_packet2(
+    #     up_types=(Arp, Ipv4)
+    # ):
     for pkt in pcap.iterate_packet():
-        arp_or_ip = pkt.parse_payload()
-
-        if isinstance(arp_or_ip, Arp):
+        # if isinstance(up_type, Arp):
+        up_type = pkt.parse_payload()
+        if up_type.__class__ == Arp:
             arp_write(
-                "[%s] %sBytes %s %s %s\n".format(
-                    pkt.time,
-                    pkt.cap_len,
-                    mac2str(pkt.source_mac),
-                    mac2str(pkt.destination_mac),
-                    arp_or_ip.show(),
-                )
+                # f"[{datetime.fromtimestamp(ts)}] {cap_len}Bytes {mac2str(source_mac)} {mac2str(dest_mac)} {up_type.show()}\n"
+                f"[{pkt.time}] {pkt.cap_len}Bytes {mac2str(pkt.source_mac)} {mac2str(pkt.destination_mac)} {up_type.show()}\n"
             )
-        elif isinstance(arp_or_ip, Ipv4):
-            ip_str = "[%s] %sBytes %s %s %s %s %s\n".format(
-                pkt.time,
-                pkt.cap_len,
-                mac2str(pkt.source_mac),
-                mac2str(pkt.destination_mac),
-                arp_or_ip.TYPE_NAME,
-                ipv42str(arp_or_ip.source_ip),
-                ipv42str(arp_or_ip.destination_ip),
-            )
-            ip_write(ip_str)
+        # elif isinstance(up_type, Ipv4):
+        elif up_type.__class__ == Ipv4:
+            # ip_str = f"[{datetime.fromtimestamp(ts)}] {cap_len}Bytes {mac2str(source_mac)} {mac2str(dest_mac)} {up_type.TYPE_NAME} {ipv42str(up_type.source_ip)} {ipv42str(up_type.destination_ip)}"
+            ip_str = f"[{pkt.time}] {pkt.cap_len}Bytes {mac2str(pkt.source_mac)} {mac2str(pkt.destination_mac)} {up_type.TYPE_NAME} {ipv42str(up_type.source_ip)} {ipv42str(up_type.destination_ip)}"
+            ip_write(ip_str + "\n")
 
-            udp = arp_or_ip.parse_payload()
+            udp = up_type.parse_payload()
             if isinstance(udp, Udp):  # UDP
-                udp_str = "%s %s %s\n".format(
-                    ip_str, udp.source_port, udp.destination_port
-                )
-                udp_write(udp_str)
+                udp_str = f"{ip_str} {udp.source_port} {udp.destination_port}"
+                udp_write(udp_str + "\n")
 
                 dns = udp.parse_payload()
                 if isinstance(dns, Dns):  # DNS
-                    dns_write("%s %s\n".format(udp_str[:-1], dns.show()))
+                    dns_write(f"{udp_str} {dns.show()}\n")
 
 
 def main():
@@ -145,19 +136,19 @@ def run_main_times(times: int):
 
 
 if __name__ == "__main__":
-    main()  # python -m cProfile -s cumulative  day_14.py
-    # run_main_times(3)
+    # main()  # python -m cProfile -s cumulative  day_14.py
+    run_main_times(3)
 
 # 结果
 # 第 1 次
-# 函数 parse_pcap 开始：2022-05-28 21:05:40.209653
-# 函数 parse_pcap 结束：2022-05-28 21:05:57.416046
-# 函数 parse_pcap 耗时：17.206 秒
+# 函数 parse_pcap 开始：2022-05-29 11:41:19.677159
+# 函数 parse_pcap 结束：2022-05-29 11:41:40.485220
+# 函数 parse_pcap 耗时：20.808 秒
 # 第 2 次
-# 函数 parse_pcap 开始：2022-05-28 21:05:57.465528
-# 函数 parse_pcap 结束：2022-05-28 21:06:14.058051
-# 函数 parse_pcap 耗时：16.593 秒
+# 函数 parse_pcap 开始：2022-05-29 11:41:40.560034
+# 函数 parse_pcap 结束：2022-05-29 11:42:01.410143
+# 函数 parse_pcap 耗时：20.850 秒
 # 第 3 次
-# 函数 parse_pcap 开始：2022-05-28 21:06:14.110075
-# 函数 parse_pcap 结束：2022-05-28 21:06:30.192104
-# 函数 parse_pcap 耗时：16.082 秒
+# 函数 parse_pcap 开始：2022-05-29 11:42:01.467320
+# 函数 parse_pcap 结束：2022-05-29 11:42:22.401668
+# 函数 parse_pcap 耗时：20.934 秒

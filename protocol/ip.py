@@ -46,7 +46,7 @@ class Ipv4:
             return cls(data=self.data, offset=self.offset + self.HEADER_LEN)
 
     def show(self) -> str:
-        return "%s %s".format(ipv42str(self.source_ip), ipv42str(self.destination_ip))
+        return f"{ipv42str(self.source_ip)} {ipv42str(self.destination_ip)}"
 
 
 class Ipv6:

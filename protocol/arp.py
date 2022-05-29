@@ -48,6 +48,6 @@ class Arp:
 
     def show(self) -> str:
         if self.type == 1:
-            return "查询 %s 的MAC地址".format(ip2str(self.destination_ip))
+            return f"查询 {ip2str(self.destination_ip)} 的MAC地址"
         else:
-            return "响应 %s 的MAC地址".format(ip2str(self.source_ip))
+            return f"响应 {ip2str(self.source_ip)} 的MAC地址"

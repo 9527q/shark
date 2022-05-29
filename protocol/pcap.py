@@ -6,11 +6,14 @@ from typing import Iterator, Union
 
 from protocol.arp import Arp
 from protocol.ip import Ipv4, Ipv6
-from utils.convert import mac2str
+from utils.convert import bytes2int, mac2str
+
+TYPE_MAP = {b"\x08\x00": Ipv4, b"\x08\x06": Arp, b"\x86\xdd": Ipv6, b"\x88\xcc": "LLDP"}
 
 
 class Pcap:
     HEADER_LEN = 24
+    PACKET_HEADER_LEN = 16
     MAGIC_2_UNPACK_ACCURACY = {  # Pcap 的 Magic 对应的大小端模式和时间精确度
         b"\xa1\xb2\xc3\xd4": (">", 6),  # 大端，微秒 6 位精度
         b"\xa1\xb2\x3c\x4d": (">", 9),  # 大端，纳秒 9 位精度
@@ -38,12 +41,41 @@ class Pcap:
             yield packet
             index += packet.total_len
 
-    def parse_payload(self) -> list["Packet"]:
-        """临时使用建议用 iterate_packet"""
-        return list(self.iterate_packet())
+    def iterate_packet2(self, up_types):
+        """
+        生成器，返回 时间戳、数据长度、源mac、目的mac、上层协议对象
+        :param up_types: 想要的上层协议类型
+        """
+        index = self.HEADER_LEN
+        unpack_tag = self.MAGIC_2_UNPACK_ACCURACY[self.data[:4]][0]
+        while index < self.total_len:
+            tp = self.data[index + 28 : index + 30]
+            cap_len = struct.unpack(
+                unpack_tag + "L", self.data[index + 8 : index + 12]
+            )[0]
+
+            if tp <= b"\x05\xdc":
+                index += cap_len + 16
+                continue
+
+            cls = TYPE_MAP[tp]
+            if cls not in up_types:
+                index += cap_len + 16
+                continue
+
+            up_type = cls(data=self.data, offset=index + 30)
+
+            time_stamp, _, cap_len = struct.unpack(
+                unpack_tag + "LLL", self.data[index : index + 12]
+            )
+            source_mac = self.data[index + 22 : index + 28]
+            destination_mac = self.data[index + 16 : index + 22]
+
+            yield time_stamp, cap_len, source_mac, destination_mac, up_type
+            index += cap_len + 16
 
 
-TYPE_MAP = {
+TYPE_MAP2 = {
     b"\x08\x00": Ipv4,
     b"\x08\x06": Arp,
     b"\x86\xDD": Ipv6,
@@ -81,7 +113,7 @@ class Packet:
         return self.data[self.offset + 22 : self.offset + 28]
 
     def parse_payload(self) -> Union[Ipv6, Ipv4, Arp]:
-        if cls := TYPE_MAP.get(self.data[self.offset + 28 : self.offset + 30]):
+        if cls := TYPE_MAP2.get(self.data[self.offset + 28 : self.offset + 30]):
             return cls(data=self.data, offset=self.offset + 30)
 
     def show(self) -> str:
