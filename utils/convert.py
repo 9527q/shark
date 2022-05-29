@@ -2,7 +2,7 @@
 
 
 def mac2str(mac: bytes, /) -> str:
-    return mac.hex("-").upper()
+    return mac.hex(":")
 
 
 def ipv42str(ipv4: bytes, /) -> str:
