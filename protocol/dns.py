@@ -1,4 +1,5 @@
 from collections import defaultdict
+from mmap import mmap
 from typing import Iterator, Union
 
 from utils.convert import bytes2int, ip2str
@@ -10,7 +11,7 @@ class Dns:
     HEADER_LEN = 12  # 首部长度，单位字节
     DOMAIN_2_DATA: dict[str, set[str, bytes]] = defaultdict(set)  # 域名解析结果
 
-    def __init__(self, data: bytes, offset: int):
+    def __init__(self, data: Union[bytes, mmap], offset: int):
         self.data = data
         self.offset = offset
 

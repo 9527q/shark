@@ -59,9 +59,8 @@ from struct import unpack
 from typing import Callable
 
 from protocol.arp import Arp
-from protocol.defining import Lldp
 from protocol.dns import Dns
-from protocol.ip import Ipv4, Ipv6
+from protocol.ip import Ipv4
 from protocol.pcap import Pcap
 from protocol.udp import Udp
 from utils.convert import ipv42str, mac2str
@@ -80,10 +79,8 @@ def make_1g_file():
             f2.write(content)
 
 
-TYPE_MAP = {b"\x08\x00": Ipv4, b"\x08\x06": Arp, b"\x86\xdd": Ipv6, b"\x88\xcc": Lldp}
-
-
 @show_run_time
+# python -m cProfile -s cumulative  day_14.py
 # @profile  # kernprof -l -v day_14.py
 def parse_pcap(
     pcap_mm: mmap.mmap,
@@ -95,49 +92,55 @@ def parse_pcap(
     unpack_tag = Pcap.gen_unpack_tag(pcap_mm[:4]) + "L"
     index = 24
     total_len = pcap_mm.size()
+    IP = b"\x08\x00"
+    ARP = b"\x08\x06"
 
     while index < total_len:
         header = pcap_mm[index : index + 30]
         tp = header[28:30]
         cap_len = unpack(unpack_tag, header[8:12])[0]
 
-        if tp == b"\x08\x06":  # ARP
+        # IPv4
+        if tp == IP:
             ts = unpack(unpack_tag, header[:4])[0]
             dest_mac = header[16:22]
             source_mac = header[22:28]
 
-            arp = Arp(data=pcap_mm[index + 30 : index + 16 + cap_len])
+            ipv4 = Ipv4(pcap_mm, index + 30)
+            ip_str = (
+                f"[{datetime.fromtimestamp(ts)}] {cap_len}Bytes"
+                f" {mac2str(source_mac)} {mac2str(dest_mac)}"
+                f" IPv4 {ipv42str(ipv4.source_ip)} {ipv42str(ipv4.destination_ip)}\n"
+            )
+            ip_write(ip_str)
+
+            # UDP
+            if ipv4.header[9] == 17:
+                udp = Udp(pcap_mm, index + 30 + ipv4.HEADER_LEN)
+                udp_str = f"{ip_str[:-1]} {udp.source_port} {udp.destination_port}\n"
+                udp_write(udp_str)
+
+                # DNS
+                if udp.source_port == 53 or udp.destination_port == 53:
+                    dns = Dns(pcap_mm, index + 30 + ipv4.HEADER_LEN + udp.HEADER_LEN)
+                    dns_write(f"{udp_str[:-1]} {dns.show()}\n")
+
+        # ARP
+        elif tp == ARP:
+            ts = unpack(unpack_tag, header[:4])[0]
+            dest_mac = header[16:22]
+            source_mac = header[22:28]
+
+            arp = Arp(pcap_mm[index + 30 : index + 16 + cap_len])
             arp_write(
                 f"[{datetime.fromtimestamp(ts)}] {cap_len}Bytes"
                 f" {mac2str(source_mac)} {mac2str(dest_mac)} {arp.show()}\n"
             )
 
-        elif tp == b"\x08\x00":  # IPv4
-            ts = unpack(unpack_tag, header[:4])[0]
-            dest_mac = header[16:22]
-            source_mac = header[22:28]
-
-            ipv4 = Ipv4(data=pcap_mm, offset=index + 30)
-            ip_str = (
-                f"[{datetime.fromtimestamp(ts)}] {cap_len}Bytes"
-                f" {mac2str(source_mac)} {mac2str(dest_mac)}"
-                f" IPv4 {ipv42str(ipv4.source_ip)} {ipv42str(ipv4.destination_ip)}"
-            )
-            ip_write(ip_str + "\n")
-
-            udp = ipv4.parse_payload()
-            if isinstance(udp, Udp):  # UDP
-                udp_str = f"{ip_str} {udp.source_port} {udp.destination_port}"
-                udp_write(udp_str + "\n")
-
-                dns = udp.parse_payload()
-                if isinstance(dns, Dns):  # DNS
-                    dns_write(f"{udp_str} {dns.show()}\n")
-
         index += cap_len + 16
 
 
-def main():
+if __name__ == "__main__":
     pcap_n = "data_day_14.pcap"
     with open(pcap_n) as f, mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ) as mm:
         with open("arp.txt", "w") as arp_f, open("ip.txt", "w") as ip_f:
@@ -149,28 +152,3 @@ def main():
                     udp_write=udp_f.write,
                     dns_write=dns_f.write,
                 )
-
-
-def run_main_times(times: int):
-    for i in range(times):
-        print(f"第 {i+1} 次")
-        main()
-
-
-if __name__ == "__main__":
-    main()  # python -m cProfile -s cumulative  day_14.py
-    # run_main_times(3)
-
-# 结果
-# 第 1 次
-# 函数 parse_pcap 开始：2022-05-29 13:32:40.626058
-# 函数 parse_pcap 结束：2022-05-29 13:32:57.990937
-# 函数 parse_pcap 耗时：17.365 秒
-# 第 2 次
-# 函数 parse_pcap 开始：2022-05-29 13:32:58.054613
-# 函数 parse_pcap 结束：2022-05-29 13:33:15.410351
-# 函数 parse_pcap 耗时：17.356 秒
-# 第 3 次
-# 函数 parse_pcap 开始：2022-05-29 13:33:15.469210
-# 函数 parse_pcap 结束：2022-05-29 13:33:32.764531
-# 函数 parse_pcap 耗时：17.295 秒

@@ -1,3 +1,6 @@
+from mmap import mmap
+from typing import Union
+
 from protocol.dns import Dns
 from utils.convert import bytes2int
 
@@ -6,7 +9,7 @@ class Udp:
 
     HEADER_LEN = 8
 
-    def __init__(self, data: bytes, offset: int):
+    def __init__(self, data: Union[bytes, mmap], offset: int):
         self.data = data
         self.offset = offset
 
