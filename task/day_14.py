@@ -92,33 +92,34 @@ def parse_pcap(
     dns_write: Callable[[str], Any],
 ):
     unpack_tag = Pcap.gen_unpack_tag(pcap_mm[:4]) + "L"
-
     index = 24
     total_len = pcap_mm.size()
-    # up_types = {Arp, Ipv4}
-    # iee8023 = b"\x05\xdc"
+
     while index < total_len:
         header = pcap_mm[index : index + 30]
         tp = header[28:30]
         cap_len = unpack(unpack_tag, header[8:12])[0]
 
-        if tp == b"\x08\x06":
+        if tp == b"\x08\x06":  # ARP
             ts = unpack(unpack_tag, header[:4])[0]
             dest_mac = header[16:22]
             source_mac = header[22:28]
-            up_type = Arp(data=pcap_mm[index + 30 : index + 16 + cap_len])
+
+            arp = Arp(data=pcap_mm[index + 30 : index + 16 + cap_len])
             arp_write(
-                f"[{datetime.fromtimestamp(ts)}] {cap_len}Bytes {mac2str(source_mac)} {mac2str(dest_mac)} {up_type.show()}\n"
+                f"[{datetime.fromtimestamp(ts)}] {cap_len}Bytes {mac2str(source_mac)} {mac2str(dest_mac)} {arp.show()}\n"
             )
-        elif tp == b"\x08\x00":
+
+        elif tp == b"\x08\x00":  # IPv4
             ts = unpack(unpack_tag, header[:4])[0]
             dest_mac = header[16:22]
             source_mac = header[22:28]
-            up_type = Ipv4(data=pcap_mm, offset=index + 30)
-            ip_str = f"[{datetime.fromtimestamp(ts)}] {cap_len}Bytes {mac2str(source_mac)} {mac2str(dest_mac)} {up_type.TYPE_NAME} {ipv42str(up_type.source_ip)} {ipv42str(up_type.destination_ip)}"
+
+            ipv4 = Ipv4(data=pcap_mm, offset=index + 30)
+            ip_str = f"[{datetime.fromtimestamp(ts)}] {cap_len}Bytes {mac2str(source_mac)} {mac2str(dest_mac)} IPv4 {ipv42str(ipv4.source_ip)} {ipv42str(ipv4.destination_ip)}"
             ip_write(ip_str + "\n")
 
-            udp = up_type.parse_payload()
+            udp = ipv4.parse_payload()
             if isinstance(udp, Udp):  # UDP
                 udp_str = f"{ip_str} {udp.source_port} {udp.destination_port}"
                 udp_write(udp_str + "\n")
