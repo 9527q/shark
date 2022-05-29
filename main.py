@@ -73,7 +73,7 @@ def parse_pcap(
 
 
 if __name__ == "__main__":
-    pcap_n = "data_day_14.pcap"
+    pcap_n = "task/data_day_14.pcap"
     with open(pcap_n) as f, mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ) as mm:
         with open("arp.txt", "w") as arp_f, open("ip.txt", "w") as ip_f:
             with open("udp.txt", "w") as udp_f, open("dns.txt", "w") as dns_f:
