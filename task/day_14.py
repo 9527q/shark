@@ -63,7 +63,7 @@ from protocol.dns import Dns
 from protocol.ip import Ipv4
 from protocol.pcap import Pcap
 from protocol.udp import Udp
-from utils.convert import ipv42str, mac2str
+from utils.convert import ipv42str, mac2str, bytes2int
 from utils.debug import show_run_time
 
 
@@ -96,7 +96,8 @@ def parse_pcap(
     ARP = b"\x08\x06"
 
     while index < total_len:
-        header = pcap_mm[index : index + 30]
+        index_30 = index + 30
+        header = pcap_mm[index : index_30]
         tp = header[28:30]
         cap_len = unpack(unpack_tag, header[8:12])[0]
 
@@ -106,7 +107,7 @@ def parse_pcap(
             dest_mac = header[16:22]
             source_mac = header[22:28]
 
-            ipv4 = Ipv4(pcap_mm, index + 30)
+            ipv4 = Ipv4(pcap_mm, index_30)
             ip_str = (
                 f"[{datetime.fromtimestamp(ts)}] {cap_len}Bytes"
                 f" {mac2str(source_mac)} {mac2str(dest_mac)}"
@@ -116,13 +117,15 @@ def parse_pcap(
 
             # UDP
             if ipv4.header[9] == 17:
-                udp = Udp(pcap_mm, index + 30 + ipv4.HEADER_LEN)
-                udp_str = f"{ip_str[:-1]} {udp.source_port} {udp.destination_port}\n"
+                udp_offset = ipv4.offset + ipv4.HEADER_LEN
+                source_port = bytes2int(pcap_mm[udp_offset : udp_offset + 2])
+                dest_port =  bytes2int(pcap_mm[udp_offset + 2 : udp_offset + 4])
+                udp_str = f"{ip_str[:-1]} {source_port} {dest_port}\n"
                 udp_write(udp_str)
 
                 # DNS
-                if udp.source_port == 53 or udp.destination_port == 53:
-                    dns = Dns(pcap_mm, index + 30 + ipv4.HEADER_LEN + udp.HEADER_LEN)
+                if source_port == 53 or source_port == 53:
+                    dns = Dns(pcap_mm, udp_offset + 8)
                     dns_write(f"{udp_str[:-1]} {dns.show()}\n")
 
         # ARP
@@ -131,7 +134,7 @@ def parse_pcap(
             dest_mac = header[16:22]
             source_mac = header[22:28]
 
-            arp = Arp(pcap_mm[index + 30 : index + 16 + cap_len])
+            arp = Arp(pcap_mm[index_30 : index + 16 + cap_len])
             arp_write(
                 f"[{datetime.fromtimestamp(ts)}] {cap_len}Bytes"
                 f" {mac2str(source_mac)} {mac2str(dest_mac)} {arp.show()}\n"
