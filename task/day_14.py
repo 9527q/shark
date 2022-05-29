@@ -87,10 +87,10 @@ TYPE_MAP = {b"\x08\x00": Ipv4, b"\x08\x06": Arp, b"\x86\xdd": Ipv6, b"\x88\xcc":
 # @profile  # kernprof -l -v day_14.py
 def parse_pcap(
     pcap_mm: mmap.mmap,
-    arp_write: Callable[[str], Any],
-    ip_write: Callable[[str], Any],
-    udp_write: Callable[[str], Any],
-    dns_write: Callable[[str], Any],
+    arp_write: Callable,
+    ip_write: Callable,
+    udp_write: Callable,
+    dns_write: Callable,
 ):
     unpack_tag = Pcap.gen_unpack_tag(pcap_mm[:4]) + "L"
     index = 24
