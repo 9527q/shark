@@ -1,6 +1,7 @@
 # python
 .idea/
 __pycache__/
+*.py.lprof
 
 # web
 *.pcap
