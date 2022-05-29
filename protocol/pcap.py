@@ -1,8 +1,8 @@
 """packet capture"""
 import mmap
 import struct
-from struct import unpack
 from datetime import datetime
+from struct import unpack
 from typing import Iterator, Union
 
 from protocol.arp import Arp
@@ -65,13 +65,9 @@ class Pcap:
                 index += cap_len + 16
                 continue
 
-            up_type = cls(data=data, offset=index + 30)
-
-            time_stamp = unpack(unpack_tag, data[index : index + 4])[0]
-            source_mac = data[index + 22 : index + 28]
-            destination_mac = data[index + 16 : index + 22]
-
-            yield time_stamp, cap_len, source_mac, destination_mac, up_type
+            yield unpack(unpack_tag, data[index : index + 4])[0], cap_len, data[
+                index + 22 : index + 28
+            ], data[index + 16 : index + 22], cls(data=data, offset=index + 30)
             index += cap_len + 16
 
 

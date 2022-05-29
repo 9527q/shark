@@ -88,21 +88,21 @@ def parse_pcap(
 ):
     pcap = Pcap(data=pcap_mm, total_len=pcap_mm.size())
 
-    # for ts, cap_len, source_mac, dest_mac, up_type in pcap.iterate_packet2(
-    #     up_types=(Arp, Ipv4)
-    # ):
-    for pkt in pcap.iterate_packet():
+    for ts, cap_len, source_mac, dest_mac, up_type in pcap.iterate_packet2(
+        up_types=(Arp, Ipv4)
+    ):
+        # for pkt in pcap.iterate_packet():
         # if isinstance(up_type, Arp):
-        up_type = pkt.parse_payload()
+        # up_type = pkt.parse_payload()
         if up_type.__class__ == Arp:
             arp_write(
-                # f"[{datetime.fromtimestamp(ts)}] {cap_len}Bytes {mac2str(source_mac)} {mac2str(dest_mac)} {up_type.show()}\n"
-                f"[{pkt.time}] {pkt.cap_len}Bytes {mac2str(pkt.source_mac)} {mac2str(pkt.destination_mac)} {up_type.show()}\n"
+                f"[{datetime.fromtimestamp(ts)}] {cap_len}Bytes {mac2str(source_mac)} {mac2str(dest_mac)} {up_type.show()}\n"
+                # f"[{pkt.time}] {pkt.cap_len}Bytes {mac2str(pkt.source_mac)} {mac2str(pkt.destination_mac)} {up_type.show()}\n"
             )
         # elif isinstance(up_type, Ipv4):
         elif up_type.__class__ == Ipv4:
-            # ip_str = f"[{datetime.fromtimestamp(ts)}] {cap_len}Bytes {mac2str(source_mac)} {mac2str(dest_mac)} {up_type.TYPE_NAME} {ipv42str(up_type.source_ip)} {ipv42str(up_type.destination_ip)}"
-            ip_str = f"[{pkt.time}] {pkt.cap_len}Bytes {mac2str(pkt.source_mac)} {mac2str(pkt.destination_mac)} {up_type.TYPE_NAME} {ipv42str(up_type.source_ip)} {ipv42str(up_type.destination_ip)}"
+            ip_str = f"[{datetime.fromtimestamp(ts)}] {cap_len}Bytes {mac2str(source_mac)} {mac2str(dest_mac)} {up_type.TYPE_NAME} {ipv42str(up_type.source_ip)} {ipv42str(up_type.destination_ip)}"
+            # ip_str = f"[{pkt.time}] {pkt.cap_len}Bytes {mac2str(pkt.source_mac)} {mac2str(pkt.destination_mac)} {up_type.TYPE_NAME} {ipv42str(up_type.source_ip)} {ipv42str(up_type.destination_ip)}"
             ip_write(ip_str + "\n")
 
             udp = up_type.parse_payload()
@@ -141,14 +141,14 @@ if __name__ == "__main__":
 
 # 结果
 # 第 1 次
-# 函数 parse_pcap 开始：2022-05-29 11:41:19.677159
-# 函数 parse_pcap 结束：2022-05-29 11:41:40.485220
-# 函数 parse_pcap 耗时：20.808 秒
+# 函数 parse_pcap 开始：2022-05-29 11:53:24.371089
+# 函数 parse_pcap 结束：2022-05-29 11:53:43.036589
+# 函数 parse_pcap 耗时：18.666 秒
 # 第 2 次
-# 函数 parse_pcap 开始：2022-05-29 11:41:40.560034
-# 函数 parse_pcap 结束：2022-05-29 11:42:01.410143
-# 函数 parse_pcap 耗时：20.850 秒
+# 函数 parse_pcap 开始：2022-05-29 11:53:43.123832
+# 函数 parse_pcap 结束：2022-05-29 11:54:01.737296
+# 函数 parse_pcap 耗时：18.613 秒
 # 第 3 次
-# 函数 parse_pcap 开始：2022-05-29 11:42:01.467320
-# 函数 parse_pcap 结束：2022-05-29 11:42:22.401668
-# 函数 parse_pcap 耗时：20.934 秒
+# 函数 parse_pcap 开始：2022-05-29 11:54:01.799089
+# 函数 parse_pcap 结束：2022-05-29 11:54:20.469343
+# 函数 parse_pcap 耗时：18.670 秒
