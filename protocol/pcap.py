@@ -1,6 +1,7 @@
 """packet capture"""
 import mmap
 import struct
+from struct import unpack
 from datetime import datetime
 from typing import Iterator, Union
 
@@ -48,11 +49,12 @@ class Pcap:
         """
         index = self.HEADER_LEN
         unpack_tag = self.MAGIC_2_UNPACK_ACCURACY[self.data[:4]][0]
-        while index < self.total_len:
-            tp = self.data[index + 28 : index + 30]
-            cap_len = struct.unpack(
-                unpack_tag + "L", self.data[index + 8 : index + 12]
-            )[0]
+        unpack_tag += "L"
+        data = self.data
+        total_len = self.total_len
+        while index < total_len:
+            tp = data[index + 28 : index + 30]
+            cap_len = unpack(unpack_tag, data[index + 8 : index + 12])[0]
 
             if tp <= b"\x05\xdc":
                 index += cap_len + 16
@@ -63,13 +65,11 @@ class Pcap:
                 index += cap_len + 16
                 continue
 
-            up_type = cls(data=self.data, offset=index + 30)
+            up_type = cls(data=data, offset=index + 30)
 
-            time_stamp, _, cap_len = struct.unpack(
-                unpack_tag + "LLL", self.data[index : index + 12]
-            )
-            source_mac = self.data[index + 22 : index + 28]
-            destination_mac = self.data[index + 16 : index + 22]
+            time_stamp = unpack(unpack_tag, data[index : index + 4])[0]
+            source_mac = data[index + 22 : index + 28]
+            destination_mac = data[index + 16 : index + 22]
 
             yield time_stamp, cap_len, source_mac, destination_mac, up_type
             index += cap_len + 16
