@@ -48,8 +48,7 @@ class Pcap:
         :param up_types: 想要的上层协议类型
         """
         index = self.HEADER_LEN
-        unpack_tag = self.MAGIC_2_UNPACK_ACCURACY[self.data[:4]][0]
-        unpack_tag += "L"
+        unpack_tag = self.unpack_tag + "L"
         data = self.data
         total_len = self.total_len
         while index < total_len:
