@@ -84,6 +84,7 @@ TYPE_MAP = {b"\x08\x00": Ipv4, b"\x08\x06": Arp, b"\x86\xdd": Ipv6, b"\x88\xcc":
 
 
 @show_run_time
+# @profile  # kernprof -l -v day_14.py
 def parse_pcap(
     pcap_mm: mmap.mmap,
     arp_write: Callable[[str], Any],
