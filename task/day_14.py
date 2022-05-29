@@ -56,7 +56,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import mmap
 from datetime import datetime
 from struct import unpack
-from typing import Any, Callable
+from typing import Callable
 
 from protocol.arp import Arp
 from protocol.defining import Lldp
@@ -108,7 +108,8 @@ def parse_pcap(
 
             arp = Arp(data=pcap_mm[index + 30 : index + 16 + cap_len])
             arp_write(
-                f"[{datetime.fromtimestamp(ts)}] {cap_len}Bytes {mac2str(source_mac)} {mac2str(dest_mac)} {arp.show()}\n"
+                f"[{datetime.fromtimestamp(ts)}] {cap_len}Bytes"
+                f" {mac2str(source_mac)} {mac2str(dest_mac)} {arp.show()}\n"
             )
 
         elif tp == b"\x08\x00":  # IPv4
@@ -117,7 +118,11 @@ def parse_pcap(
             source_mac = header[22:28]
 
             ipv4 = Ipv4(data=pcap_mm, offset=index + 30)
-            ip_str = f"[{datetime.fromtimestamp(ts)}] {cap_len}Bytes {mac2str(source_mac)} {mac2str(dest_mac)} IPv4 {ipv42str(ipv4.source_ip)} {ipv42str(ipv4.destination_ip)}"
+            ip_str = (
+                f"[{datetime.fromtimestamp(ts)}] {cap_len}Bytes"
+                f" {mac2str(source_mac)} {mac2str(dest_mac)}"
+                f" IPv4 {ipv42str(ipv4.source_ip)} {ipv42str(ipv4.destination_ip)}"
+            )
             ip_write(ip_str + "\n")
 
             udp = ipv4.parse_payload()
