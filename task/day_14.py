@@ -62,8 +62,7 @@ from protocol.arp import Arp
 from protocol.dns import Dns
 from protocol.ip import Ipv4
 from protocol.pcap import Pcap
-from protocol.udp import Udp
-from utils.convert import ipv42str, mac2str, bytes2int
+from utils.convert import ipv42str, mac2str
 from utils.debug import show_run_time
 
 
@@ -97,7 +96,7 @@ def parse_pcap(
 
     while index < total_len:
         index_30 = index + 30
-        header = pcap_mm[index : index_30]
+        header = pcap_mm[index:index_30]
         tp = header[28:30]
         cap_len = unpack(unpack_tag, header[8:12])[0]
 
@@ -118,8 +117,7 @@ def parse_pcap(
             # UDP
             if ipv4.header[9] == 17:
                 udp_offset = ipv4.offset + ipv4.HEADER_LEN
-                source_port = bytes2int(pcap_mm[udp_offset : udp_offset + 2])
-                dest_port =  bytes2int(pcap_mm[udp_offset + 2 : udp_offset + 4])
+                source_port, dest_port = unpack(">HH", pcap_mm[udp_offset : udp_offset + 4])
                 udp_str = f"{ip_str[:-1]} {source_port} {dest_port}\n"
                 udp_write(udp_str)
 
