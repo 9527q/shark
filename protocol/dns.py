@@ -31,11 +31,8 @@ class Dns:
     def first_query_domain(self) -> str:  # 查询的域名
         return self.parse_domain(self.offset + 12)[0]
 
-    def parse_answers(self) -> list[tuple[str, Union[str, bytes]]]:
-        """解析应答信息，返回 RR域名 + RR数据 的列表"""
-        if self.qr == 0:
-            return []
-
+    def answer_ip_addrs(self) -> list[str]:
+        """解析应答信息，返回RR数据的IP地址"""
         # 先通过查询部分找到响应部分的开始位置
         index = self.offset + self.HEADER_LEN
         for _ in range(self.query_cnt):
@@ -43,19 +40,12 @@ class Dns:
 
         res = []
         for _ in range(self.answer_cnt):
-            domain, offset = self.parse_domain(index)
-            index += offset  # 位置前进到域名后面
+            index += self.parse_domain_payload_len(index)# 位置前进到域名后面
             tp = bytes2int(self.data[index : index + 2])  # RR 类型
             data_len = bytes2int(self.data[index + 8 : index + 10])  # 数据区长度
             index += 10  # 位置前进到当前 RR 的数据区
             if tp == 1:  # A 类型
-                data = self.data[index : index + data_len]
-            elif tp == 5:  # CNAME 类型
-                data = self.parse_domain(index)[0]
-            else:
-                raise ValueError(f"不支持的解析类型：{tp}")
-            Dns.DOMAIN_2_DATA[domain] = data  # 记录 RR
-            res.append((domain, data))
+                res.append(ip2str(self.data[index : index + data_len]))
             index += data_len  # 位置前进到下一个 RR 的开头
         return res
 
@@ -101,10 +91,4 @@ class Dns:
         if self.qr == 0:
             return f"DNS请求 查询域名 {self.first_query_domain} 的地址"
         else:
-            domain, addrs = None, []
-            for cname, addr in self.parse_answers():
-                if domain is None:
-                    domain = cname
-                if isinstance(addr, bytes):
-                    addrs.append(ip2str(addr))
-            return f"DNS响应 域名 {domain} 的地址是 {addrs}"
+            return f"DNS响应 域名 {self.first_query_domain} 的地址是 {self.answer_ip_addrs()}"
